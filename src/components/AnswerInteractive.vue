@@ -22,7 +22,6 @@ const props = defineProps<{
 
 const stateForward = new StateForward()
 const VadManager = ref<MicVAD | null>()
-const recording = ref(false)
 const audio = ref<Blob | null>()
 const audioElement = ref<HTMLAudioElement | null>()
 const audioSrc = ref("")
@@ -64,7 +63,7 @@ const stateTransform = (state: State) => {
           })
       break;
     case "GenQuizSound":
-      speaking(`请问 ${currentQuiz.value?.quiz_speak} 等于多少？`,
+      speaking(`请问 ${currentQuiz.value?.quiz_speak} 等于多少`,
           () => {
             VadManager.value?.start()
             stateTransform(stateForward.nextState())
@@ -78,7 +77,8 @@ const stateTransform = (state: State) => {
       }
       currentTimeout.value = setTimeout(() => {
         let rs: RecordState;
-        if (recording.value) {
+        console.log(onSpecking.value)
+        if (onSpecking.value) {
           rs = "Recording"
         } else if (audio.value) {
           rs = "Done"
@@ -108,6 +108,14 @@ const stateTransform = (state: State) => {
             stateTransform(stateForward.nextState("Idle", qs))
           })
       break;
+    case "UndetectedAns":
+      speaking("抱歉，没听清",()=>{
+
+          VadManager.value?.start()
+          stateTransform(stateForward.nextState())
+      })
+        VadManager.value?.pause()
+          break
     case "GenAnsCheck":
       speaking(`${currentQuiz.value?.quiz_speak}的答案是
       ${quizAns.value},如需要修改，请回答你的答案`, () => {
@@ -123,7 +131,7 @@ const stateTransform = (state: State) => {
       }
       currentTimeout.value= setTimeout(() => {
         let rs: RecordState;
-        if (recording.value) {
+        if (onSpecking.value) {
           rs = "Recording"
         } else if (audio.value) {
 
@@ -183,8 +191,7 @@ const vadInit = async () => {
           clearTimeout(currentTimeout.value)
         emits("mic", true, false)
         onSpecking.value = false
-        const wav = audioConv(aud)
-        audio.value = wav
+        audio.value = audioConv(aud)
         stateTransform(stateForward.nextState("Done"))
       }
 

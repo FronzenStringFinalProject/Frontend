@@ -5,7 +5,7 @@ export type State =
     | "FetchQuiz"
     | "GenQuizSound"
     | "WaitAns"
-    | "ConvAns"
+    | "ConvAns" |"UndetectedAns"
     | "GenAnsCheck"
     | "WaitCorrect"
     | "Submit"
@@ -49,11 +49,14 @@ export class StateForward {
                 if (quizState == "Detected") {
                     this.state.value = "GenAnsCheck"
                 } else if (quizState == "NoDetect") {
-                    this.state.value = "GenQuizSound"
+                    this.state.value = "UndetectedAns"
                 } else {
                     this.state.value = "Unknown"
                 }
                 break;
+            case "UndetectedAns":
+                this.state.value = "GenQuizSound"
+                break
             case "GenAnsCheck":
                 this.state.value = "WaitCorrect"
                 break;

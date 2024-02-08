@@ -7,7 +7,6 @@ import SvgIconBtn from "@/components/SvgIconBtn.vue";
 import QuizArea from "@/components/QuizArea.vue";
 import AnswerInteractive from "@/components/AnswerInteractive.vue";
 import {ref} from "vue";
-import {da} from "vuetify/locale";
 
 const questions = [
   "1 + 8", "4 + 6",
@@ -18,7 +17,16 @@ const questions = [
   "5 + 2", "8 + 1", "3 + 6", "9 + 0", "2 + 8",
   "6 + 4",
   "4 + 3", "7 + 1", "5 + 5",
-  "9 + 0", "2 + 6", "8 + 1",]
+  "9 + 0", "2 + 6", "8 + 1",
+  "16 - 5",
+  "7 + 13",
+  "20 - 11",  "9 + 10",
+  "15 - 4",
+  "3 + 17",
+  "8 - 2",  "6 + 13",
+  "14 - 6",  "18 + 3",
+  "9 - 1",  "4 + 16",
+]
 const idx = ref(0)
 const submitAudio = async (audio: Blob) => {
   try {
