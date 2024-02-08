@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import {onMounted, ref, watch} from "vue";
+import {onMounted, ref, watch,defineExpose} from "vue";
 import {MicVAD} from "@ricky0123/vad-web";
 import audioBufferToWav from "audiobuffer-to-wav";
 import {QuizAnswerState, RecordState, State, StateForward} from "@/utils/ansCollector.ts";
 import {speaking} from "@/utils/speechSynthesis.ts";
-
-type CurrentState = "FetchQuiz" | "WaitingAnsLong" | "WaitingAnsShort"
 
 
 const emits = defineEmits<{
@@ -20,82 +18,113 @@ const props = defineProps<{
   submitAnswer: (id: string, ans: number) => Promise<boolean>
 }>()
 
+const stop = ref(false)
+
+const pause = () => {
+  stop.value = true
+}
+const start = () => {
+  stop.value = false
+}
+defineExpose({pause, start})
+
+
 const stateForward = new StateForward()
 const VadManager = ref<MicVAD | null>()
-const audio = ref<Blob | null>()
+const audioBlob = ref<Blob | null>()
 const audioElement = ref<HTMLAudioElement | null>()
-const audioSrc = ref("")
 const onSpecking = ref(false)
 const currentQuiz = ref<{ id: string, quiz: string, quiz_speak: string } | null>()
 const quizAns = ref<number | null>()
 const currentTimeout = ref<NodeJS.Timeout | null>()
 const currentState = ref("Begin")
+
+const setVadState = (enable: boolean) => {
+  if (enable) {
+    VadManager.value?.start()
+    emits("mic", true, false)
+  } else {
+    VadManager.value?.pause()
+    emits("mic", false, false)
+  }
+}
+
 watch(audioElement, (element) => {
   if (element) {
     element.onplay = () => {
       emits("voice", true)
-      if (VadManager) {
-        VadManager.value?.pause()
-        emits("mic", false, false)
-      }
     }
     element.onpause = () => {
       emits("voice", false)
-      if (VadManager) {
-        VadManager.value?.start()
-        emits("mic", true, false)
-      }
+      setVadState(true)
+
     }
   }
 })
 
-const stateTransform = (state: State) => {
+watch(stop, (sta) => {
+  if (!sta) {
+    if (stateForward.getState()=="Pause")
+    handleStateAction(stateForward.nextState("Recording","Unknown",sta))
+  }
+})
+
+const speakingCallback = (play: boolean = true, record: RecordState = "Idle", quiz: QuizAnswerState = "Unknown", stop: boolean = false) => {
+  return () => {
+    const newState = stateForward.nextState(record, quiz, stop)
+    if (play)
+      audioElement.value?.play()
+    handleStateAction(newState)
+  }
+}
+
+const handleStateAction = (state: State) => {
   currentState.value = state
   switch (state) {
     case "Begin":
+      setVadState(false)
+      handleStateAction(stateForward.nextState())
       break;
     case "FetchQuiz":
-      VadManager.value?.pause()
+      setVadState(false)
       props.nextQuiz()
           .then((quiz) => {
             currentQuiz.value = quiz
-            stateTransform(stateForward.nextState())
+            handleStateAction(stateForward.nextState())
           })
       break;
     case "GenQuizSound":
+      setVadState(false)
       speaking(`请问 ${currentQuiz.value?.quiz_speak} 等于多少`,
-          () => {
-            VadManager.value?.start()
-            stateTransform(stateForward.nextState())
-          })
+          speakingCallback())
       VadManager.value?.pause()
       break;
     case "WaitAns":
-      VadManager.value?.start()
-      if (audio.value) {
-        stateTransform(stateForward.nextState("Recording"))
+      setVadState(true)
+      if (audioBlob.value) {
+        handleStateAction(stateForward.nextState("Recording"))
       }
       currentTimeout.value = setTimeout(() => {
         let rs: RecordState;
         console.log(onSpecking.value)
         if (onSpecking.value) {
           rs = "Recording"
-        } else if (audio.value) {
+        } else if (audioBlob.value) {
           rs = "Done"
         } else {
           rs = "Idle"
         }
-        stateTransform(stateForward.nextState(rs))
+        handleStateAction(stateForward.nextState(rs))
       }, 3000)
       break;
     case "ConvAns":
+      setVadState(false)
       if (currentTimeout.value) {
         clearTimeout(currentTimeout.value)
       }
-      VadManager.value?.pause();
-      props.submitAudio(audio.value!)
+      props.submitAudio(audioBlob.value!)
           .then((ans) => {
-            audio.value = null
+            audioBlob.value = null
             let qs: QuizAnswerState
             if (ans.ans) {
               qs = "Detected"
@@ -105,63 +134,53 @@ const stateTransform = (state: State) => {
             } else {
               qs = "NoDetect"
             }
-            stateTransform(stateForward.nextState("Idle", qs))
+            handleStateAction(stateForward.nextState("Idle", qs))
           })
       break;
     case "UndetectedAns":
-      speaking("抱歉，没听清",()=>{
-
-          VadManager.value?.start()
-          stateTransform(stateForward.nextState())
-      })
-        VadManager.value?.pause()
-          break
+      speaking("抱歉，没听清", speakingCallback(false))
+      VadManager.value?.pause()
+      break
     case "GenAnsCheck":
       speaking(`${currentQuiz.value?.quiz_speak}的答案是
-      ${quizAns.value},如需要修改，请回答你的答案`, () => {
-        VadManager.value?.start()
-        stateTransform(stateForward.nextState())
-      })
-      VadManager.value?.pause()
+      ${quizAns.value},如需要修改，请回答你的答案`, speakingCallback())
       break;
     case "WaitCorrect":
-      VadManager.value?.start()
+      setVadState(true)
       if (currentTimeout.value) {
         clearTimeout(currentTimeout.value)
       }
-      currentTimeout.value= setTimeout(() => {
+      currentTimeout.value = setTimeout(() => {
         let rs: RecordState;
         if (onSpecking.value) {
           rs = "Recording"
-        } else if (audio.value) {
+        } else if (audioBlob.value) {
 
           rs = "Done"
         } else {
           rs = "Idle"
         }
-        stateTransform(stateForward.nextState(rs))
+        handleStateAction(stateForward.nextState(rs))
       }, 2000)
       break;
     case "Submit":
+      setVadState(false)
       props.submitAnswer(currentQuiz.value!.id, quizAns.value!)
           .then((ans) => {
             console.log(ans)
-            speaking("好的，下一题", () => {
-              VadManager.value?.start()
-              stateTransform(stateForward.nextState())
-
-            })
+            speaking("好的，下一题", speakingCallback(false, "Recording", "Unknown", stop.value))
             VadManager.value?.pause()
           })
       break;
     case "Unknown":
-      speaking("好的，下一题", () => {
-        VadManager.value?.start()
-        stateTransform(stateForward.nextState())
-      })
+      speaking("好的，下一题", speakingCallback(false, "Recording", "Unknown", stop.value))
       VadManager.value?.pause()
       break;
-
+    case "Pause":
+      if (!stop.value){
+        handleStateAction(stateForward.nextState("Recording","Unknown",stop.value))
+      }
+      break;
   }
 }
 
@@ -178,21 +197,22 @@ const audioConv = (audio: Float32Array, rate: number = 16000) => {
 }
 
 const vadInit = async () => {
+  emits("mic", true, true)
   VadManager.value = await MicVAD.new({
     onSpeechStart() {
+      emits("mic", true, true)
       if (currentQuiz) {
-        emits("mic", true, true)
         onSpecking.value = true
       }
     },
     onSpeechEnd(aud) {
+      emits("mic", true, false)
       if (currentQuiz.value) {
         if (currentTimeout.value)
           clearTimeout(currentTimeout.value)
-        emits("mic", true, false)
         onSpecking.value = false
-        audio.value = audioConv(aud)
-        stateTransform(stateForward.nextState("Done"))
+        audioBlob.value = audioConv(aud)
+        handleStateAction(stateForward.nextState("Done"))
       }
 
     },
@@ -200,16 +220,14 @@ const vadInit = async () => {
 }
 
 onMounted(() => {
-  props.nextQuiz().then((quiz) => {
-    currentQuiz.value = quiz
-  })
   vadInit()
-  stateTransform(stateForward.nextState())
+  handleStateAction(stateForward.nextState())
 })
 
 </script>
 
 <template>
+  <audio ref="audioElement" src="/di.mp3"/>
   <span v-if="currentQuiz">{{ currentQuiz.quiz }}</span>
   <span>{{ currentState }}</span>
 </template>

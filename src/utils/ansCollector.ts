@@ -5,11 +5,13 @@ export type State =
     | "FetchQuiz"
     | "GenQuizSound"
     | "WaitAns"
-    | "ConvAns" |"UndetectedAns"
+    | "ConvAns"
+    | "UndetectedAns"
     | "GenAnsCheck"
     | "WaitCorrect"
     | "Submit"
     | "Unknown"
+    | "Pause"
 
 export type RecordState = "Idle" | "Recording" | "Done"
 export type QuizAnswerState = "NoDetect" | "Detected" | "Unknown"
@@ -25,7 +27,7 @@ export class StateForward {
         watch(this.state, cb, ops)
     }
 
-    nextState(recordState: RecordState = "Idle", quizState: QuizAnswerState = "Unknown"): State {
+    nextState(recordState: RecordState = "Idle", quizState: QuizAnswerState = "Unknown", stop: boolean = false): State {
         switch (this.state.value) {
             case "Begin":
                 this.state.value = "FetchQuiz"
@@ -70,11 +72,21 @@ export class StateForward {
                 }
                 break;
             case "Submit":
-                this.state.value = "FetchQuiz"
+                if (stop) {
+                    this.state.value = "Pause"
+                } else {
+                    this.state.value = "FetchQuiz"
+                }
                 break;
             case "Unknown":
-                this.state.value = "FetchQuiz"
+                if (stop) {
+                    this.state.value = "Pause"
+                } else {
+                    this.state.value = "FetchQuiz"
+                }
                 break
+            case "Pause":
+                this.state.value = "FetchQuiz"
         }
         return this.state.value
     }

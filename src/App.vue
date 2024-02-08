@@ -6,7 +6,7 @@ import StaticalIcon from "./assets/statical.svg?component"
 import SvgIconBtn from "@/components/SvgIconBtn.vue";
 import QuizArea from "@/components/QuizArea.vue";
 import AnswerInteractive from "@/components/AnswerInteractive.vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 
 const questions = [
   "1 + 8", "4 + 6",
@@ -56,13 +56,44 @@ const submitAns = async (id: string, ans: number) => {
   console.log(id, ans)
   return true
 }
+
+const mic_state=ref<{enable:boolean,speaking:boolean}>({enable:false,speaking:false})
+const micIcon=computed(()=>{
+  if (mic_state.value.enable){
+    if (mic_state.value.speaking){
+      return "mdi mdi-microphone"
+    }else {
+      return "mdi mdi-microphone-outline"
+    }
+  }else {
+    return "mdi mdi-microphone-off"
+  }
+})
+
+const micColor = computed(()=>{
+  if (mic_state.value.enable){
+    if (mic_state.value.speaking){
+      return "green"
+    }else {
+      return "black"
+    }
+
+  }else {
+    return "red"
+  }
+})
+
+const answer = ref()
+const stopped = ref(false)
 </script>
 <template>
   <v-app>
 
     <v-main class="w-100">
-      <answer-interactive :next-quiz="nextQuiz" :submit-answer="submitAns"
-                          :submit-audio="submitAudio"/>
+      <v-icon :icon="micIcon" :color="micColor"></v-icon>
+      <v-btn @click="stopped?answer.start():answer.pause();stopped=!stopped" :icon="stopped?'mdi mdi-play':'mdi mdi-pause'"></v-btn>
+      <answer-interactive ref="answer" :next-quiz="nextQuiz" :submit-answer="submitAns"
+                          :submit-audio="submitAudio" @mic="(on:boolean,activate:boolean)=>{mic_state= {enable:on,speaking:activate}}"/>
       <quiz-area/>
 
       <v-container class="d-flex ms-5 mb-5" style="position: absolute ; bottom: 0 ;left: 0;width: fit-content">
