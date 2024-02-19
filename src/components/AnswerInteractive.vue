@@ -90,6 +90,7 @@ const handleStateAction = (state: State) => {
       props.nextQuiz()
           .then((quiz) => {
             currentQuiz.value = quiz
+            console.log(quiz)
             handleStateAction(stateForward.nextState())
           })
       break;

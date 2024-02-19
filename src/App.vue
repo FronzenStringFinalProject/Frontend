@@ -46,15 +46,34 @@ const submitAudio = async (audio: Blob) => {
 
 }
 
+const token ="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3MjM3MzA3MzAsInBhcmVudF9pZCI6MiwicHdkX3ZlcnNpb24iOjAs" +
+    "ImNoaWxkIjo1MDN9.QmQ9M8Xx9bvb8TMY80x-gxlnSggY2hsk4dAiQCPbnzcJYRNRYKAeqHPEkZ3KQaCk"
 const nextQuiz = async () => {
-  const data = {id: idx.value.toString(), quiz: questions[idx.value], quiz_speak: questions[idx.value],}
-  idx.value = (idx.value + 1) % questions.length
-  return data
+  const url = "http://127.0.0.1:8000/api/v0/child/quiz"
+  const resp = await fetch(url,{
+    headers:{
+      "Authorization":token
+    }
+  })
+  const payload:{body:{id:number,quiz:string}} = await resp.json()
+  const quiz_speak = payload.body.quiz.replace("-","减").replace("+","加")
+  console.log(payload)
+  return {id:payload.body.id.toString(),quiz:payload.body.quiz,quiz_speak}
 }
 
 const submitAns = async (id: string, ans: number) => {
   console.log(id, ans)
-  return true
+  const url = "http://127.0.0.1:8000/api/v0/child/quiz/submit"
+  const resp = await fetch(url,{
+    method:"POST",
+    headers:{
+        "Content-Type": "application/json",
+      "Authorization":token
+    },
+    body:JSON.stringify({id:parseInt(id,10),ans})
+  })
+  const payload:{body:boolean} = await resp.json()
+  return payload.body
 }
 
 const mic_state=ref<{enable:boolean,speaking:boolean}>({enable:false,speaking:false})
