@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {onMounted, ref, watch,defineExpose} from "vue";
+import {defineExpose, onMounted, onUnmounted, ref, watch} from "vue";
 import {MicVAD} from "@ricky0123/vad-web";
 import audioBufferToWav from "audiobuffer-to-wav";
 import {QuizAnswerState, RecordState, State, StateForward} from "@/utils/ansCollector.ts";
@@ -8,7 +8,8 @@ import {speaking} from "@/utils/speechSynthesis.ts";
 
 const emits = defineEmits<{
   mic: [on: boolean, activate: boolean],
-  voice: [on: boolean]
+  voice: [on: boolean],
+  state:[state:string]
 }>()
 
 
@@ -34,10 +35,12 @@ const VadManager = ref<MicVAD | null>()
 const audioBlob = ref<Blob | null>()
 const audioElement = ref<HTMLAudioElement | null>()
 const onSpecking = ref(false)
+const onPlaying=ref(false)
 const currentQuiz = ref<{ id: string, quiz: string, quiz_speak: string } | null>()
 const quizAns = ref<number | null>()
 const currentTimeout = ref<NodeJS.Timeout | null>()
 const currentState = ref("Begin")
+
 
 const setVadState = (enable: boolean) => {
   if (enable) {
@@ -51,39 +54,48 @@ const setVadState = (enable: boolean) => {
 
 watch(audioElement, (element) => {
   if (element) {
-    element.onplay = () => {
-      emits("voice", true)
-    }
+
     element.onpause = () => {
-      emits("voice", false)
+      onPlaying.value=false
       setVadState(true)
 
     }
   }
 })
 
+watch(onPlaying,(value)=>{
+  emits("voice",value)
+})
+
+
 watch(stop, (sta) => {
   if (!sta) {
-    if (stateForward.getState()=="Pause")
-    handleStateAction(stateForward.nextState("Recording","Unknown",sta))
+    if (stateForward.getState() == "Pause")
+      handleStateAction(stateForward.nextState({requestPause:sta}))
   }
 })
 
-const speakingCallback = (play: boolean = true, record: RecordState = "Idle", quiz: QuizAnswerState = "Unknown", stop: boolean = false) => {
+const speakingCallback = (play: boolean = true) => {
   return () => {
-    const newState = stateForward.nextState(record, quiz, stop)
+    const newState = stateForward.nextState({requestPause: stop.value})
     if (play)
       audioElement.value?.play()
+    else
+      onPlaying.value=false
     handleStateAction(newState)
   }
 }
 
 const handleStateAction = (state: State) => {
   currentState.value = state
+  emits("state",state)
+  console.log(state)
   switch (state) {
     case "Begin":
       setVadState(false)
-      handleStateAction(stateForward.nextState())
+      handleStateAction(stateForward.nextState({
+        requestPause: stop.value
+      }))
       break;
     case "FetchQuiz":
       setVadState(false)
@@ -91,19 +103,24 @@ const handleStateAction = (state: State) => {
           .then((quiz) => {
             currentQuiz.value = quiz
             console.log(quiz)
-            handleStateAction(stateForward.nextState())
+            handleStateAction(stateForward.nextState({
+              requestPause: stop.value
+            }))
           })
       break;
     case "GenQuizSound":
       setVadState(false)
-      speaking(`请问 ${currentQuiz.value?.quiz_speak} 等于多少`,
+      speaking(`请问 ${currentQuiz.value?.quiz_speak} 等于多少`,onPlaying,
           speakingCallback())
       VadManager.value?.pause()
       break;
     case "WaitAns":
       setVadState(true)
       if (audioBlob.value) {
-        handleStateAction(stateForward.nextState("Recording"))
+        handleStateAction(stateForward.nextState({
+          requestPause: stop.value,
+          recordState: "Recording"
+        }))
       }
       currentTimeout.value = setTimeout(() => {
         let rs: RecordState;
@@ -115,7 +132,10 @@ const handleStateAction = (state: State) => {
         } else {
           rs = "Idle"
         }
-        handleStateAction(stateForward.nextState(rs))
+        handleStateAction(stateForward.nextState({
+          recordState: rs,
+          requestPause: stop.value
+        }))
       }, 3000)
       break;
     case "ConvAns":
@@ -135,16 +155,16 @@ const handleStateAction = (state: State) => {
             } else {
               qs = "NoDetect"
             }
-            handleStateAction(stateForward.nextState("Idle", qs))
+            handleStateAction(stateForward.nextState({quizState: qs, requestPause: stop.value}))
           })
       break;
     case "UndetectedAns":
-      speaking("抱歉，没听清", speakingCallback(false))
+      speaking("抱歉，没听清",onPlaying, speakingCallback(false))
       VadManager.value?.pause()
       break
     case "GenAnsCheck":
       speaking(`${currentQuiz.value?.quiz_speak}的答案是
-      ${quizAns.value},如需要修改，请回答你的答案`, speakingCallback())
+      ${quizAns.value},如需要修改，请回答你的答案`,onPlaying,speakingCallback())
       break;
     case "WaitCorrect":
       setVadState(true)
@@ -161,7 +181,7 @@ const handleStateAction = (state: State) => {
         } else {
           rs = "Idle"
         }
-        handleStateAction(stateForward.nextState(rs))
+        handleStateAction(stateForward.nextState({recordState: rs, requestPause: stop.value}))
       }, 2000)
       break;
     case "Submit":
@@ -169,18 +189,20 @@ const handleStateAction = (state: State) => {
       props.submitAnswer(currentQuiz.value!.id, quizAns.value!)
           .then((ans) => {
             console.log(ans)
-            speaking("好的，下一题", speakingCallback(false, "Recording", "Unknown", stop.value))
+            speaking("好的，下一题",onPlaying, speakingCallback(false, "Recording", "Unknown", stop.value))
             VadManager.value?.pause()
           })
       break;
     case "Unknown":
-      speaking("好的，下一题", speakingCallback(false, "Recording", "Unknown", stop.value))
+      speaking("好的，下一题",onPlaying, speakingCallback(false, "Recording", "Unknown", stop.value))
       VadManager.value?.pause()
       break;
     case "Pause":
-      if (!stop.value){
-        handleStateAction(stateForward.nextState("Recording","Unknown",stop.value))
+      if (!stop.value) {
+        handleStateAction(stateForward.nextState({requestPause: stop.value}))
       }
+      break;
+    case "Exit":
       break;
   }
 }
@@ -213,7 +235,7 @@ const vadInit = async () => {
           clearTimeout(currentTimeout.value)
         onSpecking.value = false
         audioBlob.value = audioConv(aud)
-        handleStateAction(stateForward.nextState("Done"))
+        handleStateAction(stateForward.nextState({recordState: "Done", requestPause: stop.value}))
       }
 
     },
@@ -222,15 +244,19 @@ const vadInit = async () => {
 
 onMounted(() => {
   vadInit()
-  handleStateAction(stateForward.nextState())
+  handleStateAction(stateForward.nextState({requestPause: stop.value}))
+})
+
+onUnmounted(()=>{
+  handleStateAction(stateForward.nextState({exit:true}))
 })
 
 </script>
 
 <template>
   <audio ref="audioElement" src="/di.mp3"/>
-  <span v-if="currentQuiz">{{ currentQuiz.quiz }}</span>
-  <span>{{ currentState }}</span>
+<!--  <span v-if="currentQuiz">{{ currentQuiz.quiz }}</span>-->
+<!--  <span>{{ currentState }}</span>-->
 </template>
 
 <style scoped>
