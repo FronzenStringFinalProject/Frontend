@@ -11,6 +11,19 @@ const routes: RouteRecordRaw[] = [
         component: HomePage
     },
     {
+        path:"/login",
+        name:"login",
+        component:LoginPage,
+        props(to):{returnUri?:string} {
+            const return_uri = to.query.return_uri;
+            if (return_uri){
+                return {returnUri:return_uri.toString()}
+            }else{
+                return {}
+            }
+        },
+    },
+    {
         path: "/parent",
         component: ParentPage,
         children: [

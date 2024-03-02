@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mdi/font": "7.0.96",
+    "@mdi/js": "^7.4.47",
     "@ricky0123/vad-web": "^0.0.16",
     "audiobuffer-to-wav": "^1.0.0",
     "axios": "^1.4.0",
