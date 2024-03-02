@@ -15,7 +15,7 @@ const childrenList = ref<ChildrenListItem[]|null>(null)
 // hooks
 onMounted(()=>{
   getChildrenList(AuthorizeManager.getToken()).then((resp)=>{
-    childrenList.value= resp.data
+    childrenList.value= resp.body
     childrenListLoadDone.value = true
   })
 })

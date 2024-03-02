@@ -16,7 +16,8 @@ export interface ChildrenListItem {
 }
 
 export default async function getChildrenList(token: string): Promise<ServiceResponse<ChildrenListItem[]>> {
-    const resp = await client.get<ServiceResponse<ChildrenListItem[]>>("/api/v0/parent/children", {
+    const resp = await client.get<ServiceResponse<ChildrenListItem[]>>(
+        "/api/v0/parent/children/all", {
         headers: {
             "Authorization": token
         }

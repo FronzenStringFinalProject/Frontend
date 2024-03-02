@@ -1,18 +1,7 @@
 import client, {ServiceResponse} from "../../baseRequest.ts";
-import authorize from "../../../utils/authorize.ts";
 
-export interface ChildStatical {
-    /**
-     * 孩子姓名
-     */
-    name: string;
-    /**
-     * 统计信息
-     */
-    statical: Statical[];
-}
 
-export interface Statical {
+export interface QuizGroupStaticalItem {
     /**
      * 正确题目数量
      */
@@ -28,24 +17,45 @@ export interface Statical {
     /**
      * 题目类型
      */
-    ty: string;
+    quiz_ty: string;
     /**
      * 题目ID
      */
-    ty_id: number;
+    quiz_ty_id: number;
     /**
      * 错误题目数量
      */
     wrong: number;
-    [property: string]: any;
 }
 
-export default async function getChildStataical(auth:string,cid:number):Promise<ServiceResponse<ChildStatical>>{
-    const resp = await client.get<ServiceResponse<ChildStatical>>("/api/v0/parent/children/statical",{
+export async function getChildQuizGroupStatical(auth:string,cid:number):Promise<ServiceResponse<QuizGroupStaticalItem[]>>{
+    const resp = await client.get<ServiceResponse<QuizGroupStaticalItem[]>>("/api/v0/parent/children/statical/quiz_group",{
         params:{cid},
         headers:{
             "Authorization":auth
         }
     })
+    return resp.data
+}
+
+export interface ResentCorrectStaticalItem {
+    correct: number;
+    correct_rate: number;
+    date: string;
+    total: number;
+    wrong: number;
+}
+
+export async function getChildCorrectTrendStatical(auth:string,cid:number):Promise<ServiceResponse<ResentCorrectStaticalItem[]>>{
+    const resp = await client.get<ServiceResponse<ResentCorrectStaticalItem[]>>(
+        "/api/v0/parent/children/statical/correct_trend",
+        {
+            params:{cid},
+            headers:{
+                "Authorization":auth,
+            },
+            method:"GET"
+
+    });
     return resp.data
 }

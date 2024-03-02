@@ -2,14 +2,18 @@
 import CheckInIcon from "@/assets/check_in.svg?component"
 import ErrorRecordIcon from "@/assets/error_record.svg?component"
 import SvgIconBtn from "@/components/SvgIconBtn.vue";
-import {computed, ref} from "vue";
+import {computed, ref, watch} from "vue";
 import AnswerInteractive from "@/components/AnswerInteractive.vue";
 import QuizArea from "@/components/QuizArea.vue";
 import {useRouter} from "vue-router";
+import AuthorizeManager from "@/utils/authorize.ts";
+import {getNextQuiz} from "@/apiRequest/quiz/getNextQuiz.ts";
+import {submitQuizAnswer} from "@/apiRequest/quiz/submitQuizAnswer.ts";
+import {toParentMode} from "@/apiRequest/parent/modeSwitch.ts";
 
 
 const currentQuiz = ref("")
-const router= useRouter()
+const router = useRouter()
 const submitAudio = async (audio: Blob) => {
   try {
 
@@ -28,36 +32,23 @@ const submitAudio = async (audio: Blob) => {
 
 }
 
-const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3MjQyMjgzOTQsInBhcmVudF9pZCI6MiwicHdkX3ZlcnNpb24iOjAsIm" +
-    "NoaWxkIjo1MDF9.FHdbWe79IJ-ZXPubb76y8akcjCI0VMyRReo5dMCOPUjyxaYApnXxlOl-29QMWKYS"
 const nextQuiz = async () => {
-  const url = "http://127.0.0.1:8000/api/v0/child/quiz"
-  const resp = await fetch(url, {
-    headers: {
-      "Authorization": token,
-      "content-type": "application/json"
-    }
-  })
-  const payload: { body: { id: number, quiz: string } } = await resp.json()
-  const quiz_speak = payload.body.quiz.replace("-", "减").replace("+", "加")
+  const resp = await getNextQuiz(AuthorizeManager.getToken())
+  const payload: { id: number, quiz: string } = await resp.body
+  const quiz_speak = payload.quiz
+      .replace("-", "减")
+      .replace("+", "加")
+      .replace("×", "乘")
+      .replace("÷", "除以")
   console.log(payload)
-  currentQuiz.value = payload.body.quiz
-  return {id: payload.body.id.toString(), quiz: payload.body.quiz, quiz_speak}
+  currentQuiz.value = payload.quiz
+  return {id: payload.id.toString(), quiz: payload.quiz, quiz_speak}
 }
 
 const submitAns = async (id: string, ans: number) => {
   console.log(id, ans)
-  const url = "http://127.0.0.1:8000/api/v0/child/quiz/submit"
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": token
-    },
-    body: JSON.stringify({id: parseInt(id, 10), ans})
-  })
-  const payload: { body: boolean } = await resp.json()
-  return payload.body
+  const resp = await submitQuizAnswer(AuthorizeManager.getToken(), parseInt(id, 10), ans)
+  return resp.body
 }
 
 const mic_state = ref<{ enable: boolean, speaking: boolean }>({enable: false, speaking: false})
@@ -91,6 +82,20 @@ const voiceState = ref(false)
 const answer = ref()
 const currentState = ref("Begin")
 const stopped = ref(false)
+const parentSecret = ref("")
+const canReturn = computed(() => parentSecret.value.length > 0)
+const backParentDialogDisplay=ref(false)
+
+watch(backParentDialogDisplay,(value)=>{
+    stopped.value=value
+  if (value){
+    answer.value.pause()
+  }else {
+    answer.value.start()
+  }
+
+})
+
 </script>
 
 <template>
@@ -109,10 +114,24 @@ const stopped = ref(false)
 
       </v-col>
       <v-col class="d-flex  flex-row " cols="2">
-        <v-avatar icon="mdi mdi-teddy-bear" size="60" class="elevation-3 mt-2">A</v-avatar>
+        <v-avatar class="elevation-3 mt-2" icon="mdi mdi-teddy-bear" size="80">A</v-avatar>
         <v-col class="d-flex flex-column mr-5">
           <v-label class="mb-2">孩子姓名</v-label>
-          <v-btn @click="router.push('/parent')">返回家长模式</v-btn>
+          <v-dialog width="500" v-model="backParentDialogDisplay">
+            <template #activator="{props}">
+              <v-btn v-bind="props">返回家长模式</v-btn>
+            </template>
+            <template #default="{isActivate}">
+              <v-card title="返回家长模式">
+                <v-card-text>
+                  <v-text-field type="password" label="Secret" prepend-icon="mdi mdi-lock" v-model="parentSecret"/>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn :disabled="!canReturn" @click="toParentMode(AuthorizeManager.getToken(),parentSecret).then(()=>{router.push('/parent')})">返回</v-btn>
+                </v-card-actions>
+              </v-card>
+            </template>
+          </v-dialog>
         </v-col>
 
       </v-col>
@@ -130,7 +149,7 @@ const stopped = ref(false)
     <v-row id="button-area" class="w-100" no-gutters style="">
       <v-col cols="2">
 
-        <v-label class="rounded-lg pa-10 elevation-3 align-center">{{ currentState }}</v-label>
+        <v-label class="rounded-lg pa-10 elevation-3">{{ currentState }}</v-label>
       </v-col>
       <v-col cols="4" offset="6">
 
