@@ -4,6 +4,13 @@ import ChildDetail from "../pages/parent/ChildDetail.vue";
 import ParentHome from "../pages/parent/ChildrenList.vue";
 import ParentPage from "../pages/parent/ParentPage.vue";
 import ChildQuiz from "../pages/ChildQuiz.vue";
+import BaseInfo from "../pages/parent/childDetail/BaseInfo.vue";
+import * as path from "path";
+import QuizGroupStatical from "../pages/parent/childDetail/statical/QuizGroupStatical.vue";
+import CorrectTrendStatical from "../pages/parent/childDetail/statical/CorrectTrendStatical.vue";
+import WrongAnsQuizRecord from "../pages/parent/childDetail/WrongAnsQuizRecord.vue";
+import LoginPage from "../pages/LoginPage.vue";
+import AuthorizeManager from "../utils/authorize.ts";
 
 const routes: RouteRecordRaw[] = [
     {
@@ -35,7 +42,32 @@ const routes: RouteRecordRaw[] = [
                 path: "child/:cid",
                 name:"child-detail",
                 component: ChildDetail,
-                props: (route) => ({cid: parseInt(route.params.cid.toString(), 10)})
+                props: (route) => ({cid: parseInt(route.params.cid.toString(), 10)}),
+                children:[
+                    {
+                        path:"",
+                        component:BaseInfo,
+                    },
+                    {
+                        path: "statical",
+                        children:[
+                            {
+                                path:"quiz-group",
+                                name:"quizGroup",
+                                component:QuizGroupStatical
+                            },
+                            {
+                                path: "correct-trend",
+                                name:"correctTrend",
+                                component:CorrectTrendStatical
+                            }
+                        ]
+                    },{
+                        path:"wrong-record",
+                        name:"wrongRecord",
+                        component:WrongAnsQuizRecord
+                    }
+                ]
             },
         ]
     },
@@ -50,5 +82,17 @@ export const route = createRouter({
 })
 
 route.beforeEach((to, from) => {
-    return true
+    console.log(to.path,AuthorizeManager.authorized())
+    if (to.path.startsWith("/parent")){
+        if (AuthorizeManager.authorized())
+        return true
+        else {
+            return {name:"login",query:{return_uri:to.path}}
+        }
+    }else if (to.name=="login"){
+        return true
+    }
+    else{
+        return true
+    }
 })
