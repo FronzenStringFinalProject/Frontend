@@ -189,20 +189,24 @@ const handleStateAction = (state: State) => {
       props.submitAnswer(currentQuiz.value!.id, quizAns.value!)
           .then((ans) => {
             console.log(ans)
-            speaking("好的，下一题",onPlaying, speakingCallback(false, "Recording", "Unknown", stop.value))
+            speaking("好的，下一题",onPlaying, speakingCallback(false))
             VadManager.value?.pause()
           })
       break;
     case "Unknown":
-      speaking("好的，下一题",onPlaying, speakingCallback(false, "Recording", "Unknown", stop.value))
+      speaking("好的，下一题",onPlaying, speakingCallback(false))
       VadManager.value?.pause()
       break;
     case "Pause":
+
       if (!stop.value) {
         handleStateAction(stateForward.nextState({requestPause: stop.value}))
+      }else {
+        VadManager.value?.pause()
       }
       break;
     case "Exit":
+      VadManager.value?.pause()
       break;
   }
 }
