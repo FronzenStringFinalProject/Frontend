@@ -23,8 +23,8 @@ const submitAudio = async (audio: Blob) => {
       method: "POST",
       body: form
     })
-    const payload: { result?: number, unknown: boolean } = await res.json()
-    return {ans: payload.result, neg: payload.unknown}
+    const payload: { result?: number, unknown: boolean ,confirm:boolean} = await res.json()
+    return {ans: payload.result, neg: payload.unknown,pos:payload.confirm}
   } catch (e) {
     console.error(e)
     return {ans: null, neg: false}

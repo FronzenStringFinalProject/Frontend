@@ -2,6 +2,10 @@ import {ref, Ref, watch, WatchCallback, WatchOptions} from "vue";
 
 export type State =
     "Begin"
+    | "GenIntroAsk"
+    | "WaitIntro"
+    | "ConvIntroRequire"
+    | "GenIntro"
     | "FetchQuiz"
     | "GenQuizSound"
     | "WaitAns"
@@ -16,12 +20,14 @@ export type State =
 
 export type RecordState = "Idle" | "Recording" | "Done"
 export type QuizAnswerState = "NoDetect" | "Detected" | "Unknown"
+export type NeedIntro = boolean
 
 export interface StateInput {
     recordState?: RecordState,
     quizState?: QuizAnswerState,
+    needIntro: NeedIntro,
     requestPause: boolean,
-    exit?:boolean
+    exit?: boolean
 }
 
 export class StateForward {
@@ -35,21 +41,42 @@ export class StateForward {
         watch(this.state, cb, ops)
     }
 
-    nextState({recordState, quizState, requestPause,exit}: StateInput): State {
+    nextState({recordState, quizState, requestPause, exit, needIntro}: StateInput): State {
+        console.log(recordState, quizState, requestPause, exit, this.state.value)
         if (requestPause) {
             this.state.value = "Pause"
             return this.state.value
-        }else if (exit){
+        } else if (exit) {
             this.state.value = "Exit"
             return this.state.value
-        }
-
-        else {
+        } else {
 
             switch (this.state.value) {
                 case "Begin":
-                    this.state.value = "FetchQuiz"
+                    this.state.value = "GenIntroAsk"
                     break;
+                case "GenIntroAsk":
+                    this.state.value = "WaitIntro"
+                    break
+                case "WaitIntro":
+                    if (recordState === undefined || recordState == "Idle") {
+                        this.state.value = "FetchQuiz"
+                    } else if (recordState == "Recording") {
+                        this.state.value = "WaitIntro"
+                    } else {
+                        this.state.value = "ConvIntroRequire"
+                    }
+                    break
+                case "ConvIntroRequire":
+                    if (needIntro === undefined || needIntro) {
+                        this.state.value = "GenIntro"
+                    } else {
+                        this.state.value = "FetchQuiz"
+                    }
+                    break
+                case "GenIntro":
+                    this.state.value = "FetchQuiz"
+                    break
                 case "FetchQuiz":
                     this.state.value = "GenQuizSound"
                     break;
@@ -57,7 +84,7 @@ export class StateForward {
                     this.state.value = "WaitAns"
                     break;
                 case "WaitAns":
-                    if (recordState || recordState == "Idle") {
+                    if (recordState === undefined || recordState == "Idle") {
                         this.state.value = "GenQuizSound"
                     } else if (recordState == "Recording") {
                         this.state.value = "WaitAns"
@@ -81,7 +108,7 @@ export class StateForward {
                     this.state.value = "WaitCorrect"
                     break;
                 case "WaitCorrect":
-                    if (recordState || recordState == "Idle") {
+                    if (recordState === undefined || recordState == "Idle") {
                         this.state.value = "Submit"
                     } else if (recordState == "Recording") {
                         this.state.value = "WaitCorrect"

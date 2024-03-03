@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {Scatter} from "vue-chartjs";
+import {Line, Scatter} from "vue-chartjs";
 import {
   BarElement,
   CategoryScale,
@@ -17,7 +17,7 @@ import {
 import {computed, onMounted, ref} from "vue";
 import {ChartInputItem} from "@/utils/chartInput.ts";
 
-ChartJs.register(TimeScale, Title, Tooltip, Legend, CategoryScale, PointElement, LineElement, LogarithmicScale, LinearScale, BarElement,)
+ChartJs.register(TimeScale, Title, Tooltip, Legend, CategoryScale, PointElement, LineElement, LogarithmicScale, LinearScale, BarElement)
 const props = defineProps<{
   title: string,
   fetchStatical: () => Promise<ChartInputItem[]>
@@ -33,6 +33,7 @@ onMounted(() => {
 
 
 const chartData = computed(() => {
+  console.log(chartStatical.value)
   if (chartStatical.value.length != 0) {
     return {
       labels: chartStatical.value.map(data => data.columnName),
@@ -44,8 +45,8 @@ const chartData = computed(() => {
           label: "正确率",
           data: chartStatical.value.map(data => data.correctRate),
           tension: 0.1,
-          yAxisID: "rateAxis"
-          , backgroundColor: 'rgb(24,75,69)',
+          yAxisID: "rateAxis",
+          backgroundColor: 'rgb(24,75,69)',
           borderColor: 'rgb(24,75,69)',
           borderWidth: 2,
         }, {
@@ -121,10 +122,11 @@ const chartJsOptions = {
     },
     rateAxis: {
       beginAtZero: true,
-      type: "logarithmic",
+      // type: "line",
       position: "right",
       ticks: {
         callback: (value,idx,tick) => {
+          console.log(value)
           return `${(value * 100.0).toFixed(2)}%`
         },
 
