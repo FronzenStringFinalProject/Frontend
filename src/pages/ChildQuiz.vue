@@ -23,11 +23,11 @@ const submitAudio = async (audio: Blob) => {
       method: "POST",
       body: form
     })
-    const payload: { result?: number, unknown: boolean ,confirm:boolean} = await res.json()
-    return {ans: payload.result, neg: payload.unknown,pos:payload.confirm}
+    const payload: { result?: number, unknown: boolean, confirm: boolean } = await res.json()
+    return {ans: payload.result, negative: payload.unknown, positive: payload.confirm}
   } catch (e) {
     console.error(e)
-    return {ans: null, neg: false}
+    return {ans: null, negative: false,positive:false}
   }
 
 }
@@ -84,13 +84,13 @@ const currentState = ref("Begin")
 const stopped = ref(false)
 const parentSecret = ref("")
 const canReturn = computed(() => parentSecret.value.length > 0)
-const backParentDialogDisplay=ref(false)
+const backParentDialogDisplay = ref(false)
 
-watch(backParentDialogDisplay,(value)=>{
-    stopped.value=value
-  if (value){
+watch(backParentDialogDisplay, (value) => {
+  stopped.value = value
+  if (value) {
     answer.value.pause()
-  }else {
+  } else {
     answer.value.start()
   }
 
@@ -117,17 +117,20 @@ watch(backParentDialogDisplay,(value)=>{
         <v-avatar class="elevation-3 mt-2" icon="mdi mdi-teddy-bear" size="80">A</v-avatar>
         <v-col class="d-flex flex-column mr-5">
           <v-label class="mb-2">孩子姓名</v-label>
-          <v-dialog width="500" v-model="backParentDialogDisplay">
+          <v-dialog v-model="backParentDialogDisplay" width="500">
             <template #activator="{props}">
               <v-btn v-bind="props">返回家长模式</v-btn>
             </template>
             <template #default="{isActivate}">
               <v-card title="返回家长模式">
                 <v-card-text>
-                  <v-text-field type="password" label="Secret" prepend-icon="mdi mdi-lock" v-model="parentSecret"/>
+                  <v-text-field v-model="parentSecret" label="Secret" prepend-icon="mdi mdi-lock" type="password"/>
                 </v-card-text>
                 <v-card-actions>
-                  <v-btn :disabled="!canReturn" @click="toParentMode(AuthorizeManager.getToken(),parentSecret).then(()=>{router.push('/parent')})">返回</v-btn>
+                  <v-btn :disabled="!canReturn"
+                         @click="toParentMode(AuthorizeManager.getToken(),parentSecret).then(()=>{router.push('/parent')})">
+                    返回
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </template>
