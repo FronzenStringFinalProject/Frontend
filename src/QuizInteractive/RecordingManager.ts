@@ -2,17 +2,17 @@
 // 使用vad模块进行录音切割，按照需求进行录音合并
 import {MicVAD} from "@ricky0123/vad-web";
 import audioBufferToWav from "audiobuffer-to-wav";
-import {en} from "vuetify/locale";
-import {state} from "vue-tsc/out/shared";
 
-export type RecordState = "Idle" | "Recording" | "ShortBreak" | "Ending"
+export type RecordState = "Idle" | "Recording" | "ShortBreak" | "Ending" | "Exit"
 export type AudioSubmit = (audio: Blob) => void
 export type StateHandler = (state: RecordState) => void
+export type MicState = (enable: boolean, activate: boolean) => void
 
 export class RecordingManager {
     audioSubmit: AudioSubmit
-    private state: RecordingStateTransformer
     outerHandler: StateHandler
+    micState?: MicState
+    private state: RecordingStateTransformer
     private vad: MicVAD
     private recorded?: Blob
     private timeout?: NodeJS.Timeout
@@ -20,15 +20,18 @@ export class RecordingManager {
     private constructor(submitAudio: AudioSubmit, handler: StateHandler) {
         this.audioSubmit = submitAudio
         this.outerHandler = handler
-        this.state = new RecordingStateTransformer(()=>{})
+        this.state = new RecordingStateTransformer(() => {
+        })
     }
 
-    public static async create(submitAudio: AudioSubmit, handler: StateHandler): Promise<RecordingManager> {
+    public static async create(submitAudio: AudioSubmit, handler: StateHandler, micState?: MicState): Promise<RecordingManager> {
         const self = new RecordingManager(submitAudio, handler);
+        self.micState = micState
         // https://wiki.vad.ricky0123.com/en/docs/user/api
         self.vad = await MicVAD.new({
             onSpeechStart() {
-                console.log("开始录音，当前状态",self.state.state)
+                self.updateMicState(true, true)
+                console.log("开始录音，当前状态", self.state.state)
                 if (self.timeout) {
                     console.log("清理timeout")
                     //如果有timeout,取消该timeout
@@ -38,6 +41,7 @@ export class RecordingManager {
                 self.nextState({recording: true})
             },
             onSpeechEnd(audio) {
+                self.updateMicState(true, false)
                 console.log("ending recording")
                 let new_audio = audioConv(audio)
                 if (self.recorded && self.recorded.size > 0) {
@@ -55,25 +59,25 @@ export class RecordingManager {
         })
         return self
     }
-    private nextState(input:RecordStateTransInput){
-        const state = this.state.nextState(input)
-        this.stateHandler(state)
-        this.outerHandler(state)
-    }
+
     public stateHandler(state: RecordState) {
         switch (state) {
             case "Idle":
                 if (this.timeout)
                     clearTimeout(this.timeout)
                 if (this.recorded)
-                    this.recorded=undefined
+                    this.recorded = undefined
                 break
             case "Recording":
             case "ShortBreak":
                 break;
             case "Ending":
-                this.audioSubmit(this.recorded)
+                this.audioSubmit(this.recorded!)
+                this.recorded = undefined
                 this.nextState({})
+                break;
+            case "Exit":
+                this.vad.destroy()
                 break;
 
         }
@@ -81,17 +85,36 @@ export class RecordingManager {
 
     public pause() {
         this.vad.pause()
+        this.updateMicState(false, false)
     }
 
     public resume() {
         this.vad.start()
+        this.updateMicState(true, false)
+    }
+
+    public exit() {
+        this.nextState({exit: true})
+
+    }
+
+    private updateMicState(enable: boolean, activate: boolean) {
+        if (this.micState)
+            this.micState(enable, activate)
+    }
+
+    private nextState(input: RecordStateTransInput) {
+        const state = this.state.nextState(input)
+        this.stateHandler(state)
+        this.outerHandler(state)
     }
 
 }
 
 interface RecordStateTransInput {
     recording?: boolean,
-    enable?:boolean
+    enable?: boolean,
+    exit?: boolean
 }
 
 class RecordingStateTransformer {
@@ -103,30 +126,36 @@ class RecordingStateTransformer {
     }
 
     nextState(input: RecordStateTransInput): RecordState {
-        console.log(this.state,input)
-        switch (this.state) {
-            case "Idle":
-                    this.state="Recording"
-                break
+        console.log(this.state, input)
+        if (input.exit) {
+            this.state = "Exit"
+        } else {
 
-            case "Recording":
-                if (input.recording) {
+            switch (this.state) {
+                case "Idle":
                     this.state = "Recording"
-                } else {
-                    this.state = "ShortBreak"
-                }
-                break;
-            case "ShortBreak":
-                if (input.recording) {
-                    this.state = "Recording"
-                } else {
-                    this.state = "Ending"
-                }
-                break;
-            case "Ending":
-                this.state = "Idle"
-                break;
+                    break
 
+                case "Recording":
+                    if (input.recording) {
+                        this.state = "Recording"
+                    } else {
+                        this.state = "ShortBreak"
+                    }
+                    break;
+                case "ShortBreak":
+                    if (input.recording) {
+                        this.state = "Recording"
+                    } else {
+                        this.state = "Ending"
+                    }
+                    break;
+                case "Ending":
+                    this.state = "Idle"
+                    break;
+                case "Exit":
+                    break
+            }
         }
         this.handler(this.state)
         return this.state

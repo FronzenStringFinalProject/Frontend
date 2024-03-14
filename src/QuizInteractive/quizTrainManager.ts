@@ -1,10 +1,8 @@
 // 题目练习管理
 // 1 管理音频录制与播放
-import {RecordingManager, StateHandler} from "./RecordingManager.ts";
-import {VoicePlayManager} from "./VoicePlayManager.ts";
+import {MicState, RecordingManager, StateHandler} from "./RecordingManager.ts";
+import {SpeakerState, VoicePlayManager} from "./VoicePlayManager.ts";
 import {Ref} from "vue";
-import {id} from "vuetify/locale";
-import {speaking} from "../utils/speechSynthesis.ts";
 
 export type QuizTrainState =
 // 开始
@@ -61,14 +59,12 @@ export class QuizTrainManager {
     private playing: VoicePlayManager
     private state: QuizTrainState = "Begin"
 
-    private doneCallbackResolver: () => void
+    private doneCallbackResolver?: () => void
 
     private currentQuiz?: FetchedQuiz
     private currentTimeout?: NodeJS.Timeout
     private currentAns?: number
     private audioBlob?: Blob
-
-
 
 
     private constructor(
@@ -90,19 +86,22 @@ export class QuizTrainManager {
         audioElement: Ref<HTMLAudioElement | null>,
         fetchQuiz: FetchQuiz,
         submitQuiz: SubmitQuiz,
-        convAudio: ConvAudio
+        convAudio: ConvAudio,
+        micState: MicState,
+        speakerState: SpeakerState
     ): Promise<QuizTrainManager> {
         const record = await RecordingManager.create(() => {
-        }, ()=>{})
+        }, () => {
+        }, micState)
         const playing = await VoicePlayManager.create(audioElement, () => {
-        })
+        }, speakerState)
         let self = new QuizTrainManager(record, playing, fetchQuiz, submitQuiz, convAudio)
         self.recording.outerHandler = (state) => {
             console.log(state)
 
             if (state == "Recording" && self.currentTimeout) {
                 clearTimeout(self.currentTimeout)
-                self.currentTimeout=undefined
+                self.currentTimeout = undefined
             }
 
 
@@ -119,27 +118,17 @@ export class QuizTrainManager {
         return self
     }
 
-    private async speaking(word: string, playAudio: boolean = false) {
-        this.recording.pause()
-        await this.playing.speaking(word, playAudio)
-        await new Promise<void>((resolve) => {
-            this.doneCallbackResolver = resolve
-        })
-        console.log("Speaking Done")
-        this.recording.resume()
+    public pause() {
+        this.nextState({pause: true})
     }
 
-    public pause(){
-        this.nextState({pause:true})
-    }
-    public resume(){
-        this.nextState({pause:false})
+    public resume() {
+        this.nextState({pause: false})
     }
 
-    public exit(){
-        this.nextState({exit:true})
+    public exit() {
+        this.nextState({exit: true})
     }
-
 
     public nextState({correct, startSpeaking, confirm, pause, exit, ignorance, confuse}: {
         // 答案是否正确
@@ -157,7 +146,7 @@ export class QuizTrainManager {
         // 没听到答案
         confuse?: boolean
     }) {
-        console.log("currentState :",this.state)
+        console.log("currentState :", this.state)
         if (pause) {
             this.state = "Pause"
         } else if (exit) {
@@ -186,10 +175,10 @@ export class QuizTrainManager {
                     // 如果不会，提交当前题目
                     if (ignorance)
                         this.state = "Submit"
-                        // 没听到答案，请求重新回答
+                    // 没听到答案，请求重新回答
                     else if (confuse)
                         this.state = "ConfuseAns"
-                        // 其他情况确认答案，下题
+                    // 其他情况确认答案，下题
                     else
                         this.state = "ConfirmAns"
                     break;
@@ -228,7 +217,7 @@ export class QuizTrainManager {
                     break;
                 case "Pause":
                     // 暂停，保持暂停
-                    if (pause!=undefined && !pause)
+                    if (pause != undefined && !pause)
                         this.state = "FetchQuiz"
                     else
                         //否则获取下一题
@@ -241,6 +230,16 @@ export class QuizTrainManager {
         this.nextHandle()
     }
 
+    private async speaking(word: string, playAudio: boolean = false) {
+        this.recording.pause()
+        await this.playing.speaking(word, playAudio)
+        await new Promise<void>((resolve) => {
+            this.doneCallbackResolver = resolve
+        })
+        console.log("Speaking Done")
+        this.recording.resume()
+    }
+
     private nextHandle() {
         // console.log(`handling state ${this.state}`)
         switch (this.state) {
@@ -249,10 +248,10 @@ export class QuizTrainManager {
                 break;
             case "FetchQuiz":
                 // 清空上一轮状态
-                this.currentAns=undefined
-                this.currentQuiz=undefined
-                this.currentTimeout=undefined
-                this.audioBlob=undefined
+                this.currentAns = undefined
+                this.currentQuiz = undefined
+                this.currentTimeout = undefined
+                this.audioBlob = undefined
                 // 获取题目
                 this.fetchQuiz()
                     .then((quiz) => {
@@ -275,11 +274,11 @@ export class QuizTrainManager {
                 }, 3000)
                 break;
             case "ConvAns":
-                this.convAudio(this.audioBlob)
+                this.convAudio(this.audioBlob!)
                     .then((result) => {
                         console.log(result)
                         //提交语音后清空
-                        this.audioBlob=undefined
+                        this.audioBlob = undefined
                         // 消极，否定，表示不会。
                         if (result.negative) {
                             this.nextState({ignorance: true})
@@ -308,10 +307,11 @@ export class QuizTrainManager {
                 break;
 
             case "ConvConfirm":
-                this.convAudio(this.audioBlob)
+                this.convAudio(this.audioBlob!)
                     .then((result) => {
+                        console.log(result)
                         //提交语音后清空
-                        this.audioBlob=undefined
+                        this.audioBlob = undefined
                         // 积极答案，表示确认
                         if (result.positive) {
                             this.nextState({confirm: true})
@@ -326,19 +326,21 @@ export class QuizTrainManager {
                     })
                 break;
             case "Submit":
-                this.submitQuiz(this.currentQuiz?.id,this.currentAns)
-                    .then((correct)=>{
+                this.submitQuiz(this.currentQuiz!.id, this.currentAns)
+                    .then((correct) => {
                         this.nextState({correct})
                     })
                 break;
             case "SpeakingActivate":
-                this.speaking("太棒了，你又获得了100积分",false)
-                    .then(()=>{
+                this.speaking("太棒了，你又获得了100积分", false)
+                    .then(() => {
                         this.nextState({})
                     })
                 break;
             case "Pause":
+                break
             case "Exit":
+                this.recording.exit()
                 break;
 
         }

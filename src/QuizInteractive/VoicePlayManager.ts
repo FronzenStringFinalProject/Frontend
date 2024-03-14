@@ -2,9 +2,11 @@ import {Ref, watch} from "vue";
 
 
 export type DoneCallback = ()=>void
+export type SpeakerState=(activate:boolean)=>void
 /// 音频播放管理
 export class VoicePlayManager{
     private audioElement:HTMLAudioElement
+    speakerState?:SpeakerState
     doneCallback:DoneCallback
 
     private constructor(element:HTMLAudioElement,callback:DoneCallback) {
@@ -12,7 +14,7 @@ export class VoicePlayManager{
         this.doneCallback = callback
     }
 
-    public static async create(element:Ref<HTMLAudioElement|null>,callback:DoneCallback):Promise<VoicePlayManager>{
+    public static async create(element:Ref<HTMLAudioElement|null>,callback:DoneCallback,speakerState?:SpeakerState):Promise<VoicePlayManager>{
         let elementPromise = new Promise<HTMLAudioElement>((resolve)=>{
             if (element.value){
                 resolve(element.value)
@@ -25,7 +27,9 @@ export class VoicePlayManager{
         })
         let audioElement = await elementPromise
 
-        return new VoicePlayManager(audioElement,callback)
+        const manger =  new VoicePlayManager(audioElement,callback)
+        manger.speakerState=speakerState
+        return manger
     }
 
     public async speaking(text:string,playAudioWhenEnd:boolean=false){
@@ -36,12 +40,20 @@ export class VoicePlayManager{
             if (playAudioWhenEnd){
                 this.audioElement.onpause= ()=>{
                     this.doneCallback()
+                    this.updateSpeakerState(false)
                 }
                 this.audioElement.play()
             }else {
                 this.doneCallback()
+                this.updateSpeakerState(false)
             }
         }
         speechSynthesis.speak(words)
-    }
+        this.updateSpeakerState(true)
+       }
+
+       private updateSpeakerState(activate:boolean){
+        if (this.speakerState)
+            this.speakerState(activate)
+       }
 }

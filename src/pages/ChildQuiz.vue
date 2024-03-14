@@ -10,6 +10,7 @@ import AuthorizeManager from "@/utils/authorize.ts";
 import {getNextQuiz} from "@/apiRequest/quiz/getNextQuiz.ts";
 import {submitQuizAnswer} from "@/apiRequest/quiz/submitQuizAnswer.ts";
 import {toParentMode} from "@/apiRequest/parent/modeSwitch.ts";
+import {FetchedQuiz} from "@/QuizInteractive/quizTrainManager.ts";
 
 
 const currentQuiz = ref("")
@@ -27,27 +28,30 @@ const submitAudio = async (audio: Blob) => {
     return {ans: payload.result, negative: payload.unknown, positive: payload.confirm}
   } catch (e) {
     console.error(e)
-    return {ans: null, negative: false,positive:false}
+    return {ans: null, negative: false, positive: false}
   }
 
 }
 
-const nextQuiz = async () => {
+const nextQuiz: () => Promise<FetchedQuiz> = async () => {
   const resp = await getNextQuiz(AuthorizeManager.getToken())
   const payload: { id: number, quiz: string } = await resp.body
   const quiz_speak = payload.quiz
       .replace("-", "减")
       .replace("+", "加")
-      .replace("×", "乘")
-      .replace("÷", "除以")
+      .replace("*", "乘")
+      .replace("/", "除以")
+  const quiz_display = payload.quiz
+      .replace("*", "×")
+      .replace("/", "÷")
   console.log(payload)
   currentQuiz.value = payload.quiz
-  return {id: payload.id.toString(), quiz: payload.quiz, quiz_speak}
+  return {id: payload.id, quiz_speak, quiz_display}
 }
 
-const submitAns = async (id: string, ans: number) => {
+const submitAns = async (id: number, ans?: number) => {
   console.log(id, ans)
-  const resp = await submitQuizAnswer(AuthorizeManager.getToken(), parseInt(id, 10), ans)
+  const resp = await submitQuizAnswer(AuthorizeManager.getToken(), id, ans)
   return resp.body
 }
 
