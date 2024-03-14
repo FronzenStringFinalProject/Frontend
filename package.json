@@ -11,6 +11,7 @@
   "dependencies": {
     "@mdi/font": "7.0.96",
     "@mdi/js": "^7.4.47",
+    "@popperjs/core": "^2.11.8",
     "@ricky0123/vad-web": "^0.0.16",
     "audiobuffer-to-wav": "^1.0.0",
     "axios": "^1.4.0",
@@ -18,6 +19,7 @@
     "core-js": "^3.29.0",
     "fix-webm-duration": "^1.0.5",
     "onnxruntime-web": "^1.17.0",
+    "v-calendar": "^3.1.2",
     "vue": "^3.3.11",
     "vue-chartjs": "^5.3.0",
     "vue-router": "^4.2.5",

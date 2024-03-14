@@ -57,7 +57,7 @@ const gotoChildQuizMode = () => {
   toChildMode(AuthorizeManager.getToken(), props.cid)
       .then(
           () => {
-            router.push('/quiz')
+            router.push({name:"child-manage"})
           }
       )
 }

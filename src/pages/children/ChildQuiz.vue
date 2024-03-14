@@ -121,6 +121,7 @@ watch(backParentDialogDisplay, (value) => {
         <v-avatar class="elevation-3 mt-2" icon="mdi mdi-teddy-bear" size="80">A</v-avatar>
         <v-col class="d-flex flex-column mr-5">
           <v-label class="mb-2">孩子姓名</v-label>
+          <v-btn @click="router.push({name:'child-manage'});">退出练习</v-btn>
           <v-dialog v-model="backParentDialogDisplay" width="500">
             <template #activator="{props}">
               <v-btn v-bind="props">返回家长模式</v-btn>
