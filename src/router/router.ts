@@ -75,7 +75,7 @@ const routes: RouteRecordRaw[] = [
         path: "/child",
         children: [
             {
-                path: "/manage",
+                path: "manage",
                 name: "child-manage"
                 , component: ChildManage
             },
