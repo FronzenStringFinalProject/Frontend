@@ -1,15 +1,11 @@
 <script lang="ts" setup>
-import CheckInIcon from "@/assets/check_in.svg?component"
-import ErrorRecordIcon from "@/assets/error_record.svg?component"
-import SvgIconBtn from "@/components/SvgIconBtn.vue";
-import {computed, ref, watch} from "vue";
+import {computed, ref} from "vue";
 import AnswerInteractive from "@/components/AnswerInteractive.vue";
 import QuizArea from "@/components/QuizArea.vue";
 import {useRouter} from "vue-router";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {getNextQuiz} from "@/apiRequest/quiz/getNextQuiz.ts";
 import {submitQuizAnswer} from "@/apiRequest/quiz/submitQuizAnswer.ts";
-import {toParentMode} from "@/apiRequest/parent/modeSwitch.ts";
 import {FetchedQuiz} from "@/QuizInteractive/quizTrainManager.ts";
 
 
@@ -86,20 +82,6 @@ const voiceState = ref(false)
 const answer = ref()
 const currentState = ref("Begin")
 const stopped = ref(false)
-const parentSecret = ref("")
-const canReturn = computed(() => parentSecret.value.length > 0)
-const backParentDialogDisplay = ref(false)
-
-watch(backParentDialogDisplay, (value) => {
-  stopped.value = value
-  if (value) {
-    answer.value.pause()
-  } else {
-    answer.value.start()
-  }
-
-})
-
 </script>
 
 <template>
@@ -122,24 +104,7 @@ watch(backParentDialogDisplay, (value) => {
         <v-col class="d-flex flex-column mr-5">
           <v-label class="mb-2">孩子姓名</v-label>
           <v-btn @click="router.push({name:'child-manage'});">退出练习</v-btn>
-          <v-dialog v-model="backParentDialogDisplay" width="500">
-            <template #activator="{props}">
-              <v-btn v-bind="props">返回家长模式</v-btn>
-            </template>
-            <template #default="{isActivate}">
-              <v-card title="返回家长模式">
-                <v-card-text>
-                  <v-text-field v-model="parentSecret" label="Secret" prepend-icon="mdi mdi-lock" type="password"/>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn :disabled="!canReturn"
-                         @click="toParentMode(AuthorizeManager.getToken(),parentSecret).then(()=>{router.push('/parent')})">
-                    返回
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </template>
-          </v-dialog>
+
         </v-col>
 
       </v-col>
@@ -159,20 +124,10 @@ watch(backParentDialogDisplay, (value) => {
 
         <v-label class="rounded-lg pa-10 elevation-3">{{ currentState }}</v-label>
       </v-col>
-      <v-col cols="4" offset="6">
 
-        <svg-icon-btn :icon="CheckInIcon" :on-click="()=>{}"
-                      class="mr-5 justify-end" text="打卡"/>
-        <svg-icon-btn :icon="ErrorRecordIcon" :on-click="()=>{}"
-                      class="justify-end" text="错题本"/>
-      </v-col>
     </v-row>
   </v-container>
 </template>
 
 <style scoped>
-
-#center-area {
-  height: ;
-}
 </style>
