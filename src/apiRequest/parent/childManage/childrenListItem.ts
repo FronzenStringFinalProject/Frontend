@@ -1,4 +1,4 @@
-import client, {ServiceResponse} from "../../baseRequest.ts";
+import client from "../../baseRequest.ts";
 
 export interface ChildrenListItem {
     /**
@@ -15,8 +15,8 @@ export interface ChildrenListItem {
     name: string;
 }
 
-export default async function getChildrenList(token: string): Promise<ServiceResponse<ChildrenListItem[]>> {
-    const resp = await client.get<ServiceResponse<ChildrenListItem[]>>(
+export default async function getChildrenList(token: string){
+    const resp = await client.get<ChildrenListItem[]>(
         "/api/v0/parent/children/all", {
         headers: {
             "Authorization": token

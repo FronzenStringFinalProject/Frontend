@@ -1,7 +1,7 @@
-import client, {ServiceResponse} from "../baseRequest.ts";
+import client from "../baseRequest.ts";
 
-export async function getChildSpecMonthCheckRecord(authorize: string, month: number, year: number): Promise<ServiceResponse<string[]>> {
-    const resp = await client.get<ServiceResponse<string[]>>("/api/v0/child/check/month",
+export async function getChildSpecMonthCheckRecord(authorize: string, month: number, year: number) {
+    const resp = await client.get<string[]>("/api/v0/child/check/month",
         {
             headers: {
                 Authorization: authorize

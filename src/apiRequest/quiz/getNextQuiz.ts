@@ -1,17 +1,18 @@
-import client, {ServiceResponse} from "../baseRequest.ts";
+import client from "../baseRequest.ts";
 
-export interface Quiz{
-    id:number,
-    quiz:string
+export interface Quiz {
+    id: number,
+    quiz: string
 }
 
-export async function getNextQuiz(token:string):Promise<ServiceResponse<Quiz>>{
+export async function getNextQuiz(token: string) {
     const url = "/api/v0/child/quiz"
-    const resp = await client.get<ServiceResponse<Quiz>>(url, {
-        headers: {
-            "Authorization": token,
-            "content-type": "application/json"
-        }}
+    const resp = await client.get<Quiz>(url, {
+            headers: {
+                "Authorization": token,
+                "content-type": "application/json"
+            }
+        }
     )
     return resp.data
 }

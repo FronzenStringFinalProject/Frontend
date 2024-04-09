@@ -1,4 +1,4 @@
-import client, {ServiceResponse} from "../baseRequest.ts";
+import client from "../baseRequest.ts";
 
 export interface QuizGroupItem {
     gid: number;
@@ -7,8 +7,8 @@ export interface QuizGroupItem {
 }
 
 
-export async function getAllQuizGroup(auth: string): Promise<ServiceResponse<QuizGroupItem[]>> {
-    const resp = await client.get<ServiceResponse<QuizGroupItem[]>>("/api/v0/child/quiz_group", {
+export async function getAllQuizGroup(auth: string) {
+    const resp = await client.get<QuizGroupItem[]>("/api/v0/child/quiz_group", {
         headers: {
             Authorization: auth
         }

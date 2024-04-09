@@ -1,4 +1,4 @@
-import client, {ServiceResponse} from "../baseRequest.ts";
+import client from "../baseRequest.ts";
 
 export interface ChildLevelInfo {
     /**
@@ -15,8 +15,8 @@ export interface ChildLevelInfo {
     total: number;
 }
 
-export async function getChildLevelInfo(auth:string):Promise<ServiceResponse<ChildLevelInfo>>{
-    const resp = await client.get<ServiceResponse<ChildLevelInfo>>
+export async function getChildLevelInfo(auth:string){
+    const resp = await client.get<ChildLevelInfo>
     ("/api/v0/child/score",{
         headers:{
             Authorization:auth,
