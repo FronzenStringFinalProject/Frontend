@@ -1,6 +1,6 @@
-import client from "../baseRequest.ts";
+import client, {ResponseResult} from "../baseRequest.ts";
 
-export async function getChildSpecMonthCheckRecord(authorize: string, month: number, year: number) {
+export async function getChildSpecMonthCheckRecord(authorize: string, month: number, year: number): Promise<ResponseResult<string[]>> {
     const resp = await client.get<string[]>("/api/v0/child/check/month",
         {
             headers: {

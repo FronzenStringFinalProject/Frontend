@@ -7,21 +7,30 @@ import AuthorizeManager from "@/utils/authorize.ts";
 import {getNextQuiz} from "@/apiRequest/quiz/getNextQuiz.ts";
 import {submitQuizAnswer} from "@/apiRequest/quiz/submitQuizAnswer.ts";
 import {FetchedQuiz} from "@/QuizInteractive/quizTrainManager.ts";
+import {base64Encoder} from "@/utils/base64Encoder.ts";
 
 
 const currentQuiz = ref("")
 const router = useRouter()
 const submitAudio = async (audio: Blob) => {
   try {
+    const base64Audio = base64Encoder(audio)
 
     const form = new FormData()
     form.set("file", audio, "record.wav")
     const res = await fetch("http://127.0.0.1:5000/recognition", {
       method: "POST",
-      body: form
+      body: JSON.stringify({
+        base64_voice:base64Audio,
+      }),
+      headers:{
+        "Content-Type": "application/json"
+      }
     })
-    const payload: { result?: number, unknown: boolean, confirm: boolean } = await res.json()
-    return {ans: payload.result, negative: payload.unknown, positive: payload.confirm}
+    const payload: { result?: number, negative: boolean, positive: boolean } = await res.json()
+    console.log(payload)
+    return {ans: payload.result, negative: payload.negative, positive: payload.positive}
+
   } catch (e) {
     console.error(e)
     return {ans: null, negative: false, positive: false}
