@@ -12,10 +12,12 @@ import CheckIn from "@/components/CheckIn.vue";
 import QuizGroupSelection from "@/components/QuizGroupSelection.vue";
 import {toParentMode} from "@/apiRequest/parent/modeSwitch.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
+import ChildWrongRecordList from "@/components/ChildWrongRecordList.vue";
 
 const router = useRouter()
 const showCheckIn = ref(false)
 const showQuizSelect = ref(false)
+const showWrongQuiz = ref(false)
 
 const backParentDialogDisplay = ref(false)
 const parentSecret = ref("")
@@ -33,7 +35,7 @@ const canReturn = computed(() => parentSecret.value.length > 0)
 
       <svg-icon-btn :icon="CheckInIcon" :on-click="()=>{showCheckIn = true}"
                     class="mr-5 justify-end" text="打卡"/>
-      <svg-icon-btn :icon="ErrorRecordIcon" :on-click="()=>{}"
+      <svg-icon-btn :icon="ErrorRecordIcon" :on-click="()=>{showWrongQuiz=true}"
                     class="justify-end mr-5" text="错题本"/>
       <SvgIconBtn :icon="RankIcon" :on-click="()=>{}" class="justify-center" text="排行榜"/>
 
@@ -43,9 +45,9 @@ const canReturn = computed(() => parentSecret.value.length > 0)
     <v-card-actions>
       <v-dialog v-model="backParentDialogDisplay" width="500">
         <template #activator="{props}">
-          <v-btn elevation="3"  v-bind="props">返回家长模式</v-btn>
+          <v-btn elevation="3" v-bind="props">返回家长模式</v-btn>
         </template>
-        <template #default="{isActivate}">
+        <template #default>
           <v-card title="返回家长模式">
             <v-card-text>
               <v-text-field v-model="parentSecret" label="Secret" prepend-icon="mdi mdi-lock" type="password"/>
@@ -65,8 +67,15 @@ const canReturn = computed(() => parentSecret.value.length > 0)
   <v-dialog v-model="showCheckIn" width="auto">
     <check-in/>
   </v-dialog>
-  <v-dialog v-model="showQuizSelect" width="33%" >
+  <v-dialog v-model="showQuizSelect" width="33%">
     <quiz-group-selection/>
+  </v-dialog>
+  <v-dialog v-model="showWrongQuiz" width="33%">
+    <v-card title="错题本">
+      <v-card-text>
+        <child-wrong-record-list/>
+      </v-card-text>
+    </v-card>
   </v-dialog>
 </template>
 
