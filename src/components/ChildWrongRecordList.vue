@@ -21,7 +21,7 @@ onMounted(()=>{
   <v-list v-if="errorRecords">
     <v-list-item v-for="error in errorRecords" :key="`${error.qid}-${error.date}`">
       <v-list-item-title>{{error.quiz}}</v-list-item-title>
-      <v-list-item-subtitle>{{error.group}}-{{error.date}}</v-list-item-subtitle>
+      <v-list-item-subtitle>{{error.group}} | {{error.date}}</v-list-item-subtitle>
     </v-list-item>
   </v-list>
   <v-progress-circular v-else indeterminate/>

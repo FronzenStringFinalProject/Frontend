@@ -7,12 +7,14 @@ import SelectIcon from "@/assets/select.svg?component";
 import SvgIconBtn from "@/components/SvgIconBtn";
 import {useRouter} from "vue-router";
 import ChildLevel from "@/components/ChildLevel.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import CheckIn from "@/components/CheckIn.vue";
 import QuizGroupSelection from "@/components/QuizGroupSelection.vue";
 import {toParentMode} from "@/apiRequest/parent/modeSwitch.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
 import ChildWrongRecordList from "@/components/ChildWrongRecordList.vue";
+import {childName} from "@/apiRequest/child/child_base.ts";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 
 const router = useRouter()
 const showCheckIn = ref(false)
@@ -21,7 +23,15 @@ const showWrongQuiz = ref(false)
 
 const backParentDialogDisplay = ref(false)
 const parentSecret = ref("")
+const name = ref("")
 const canReturn = computed(() => parentSecret.value.length > 0)
+
+onMounted(()=>{
+  childName(AuthorizeManager.getToken()).then((resp:ResponseResult<string>)=>{
+    name.value=resp.expect();
+  })
+})
+
 </script>
 
 <template>
