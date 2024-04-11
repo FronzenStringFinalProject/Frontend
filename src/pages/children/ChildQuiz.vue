@@ -99,7 +99,7 @@ const stopped = ref(false)
 
     <v-row class="w-100 ma-5" no-gutters>
       <v-col class="flex-shrink-1 flex-grow-0" cols="3">
-
+        <v-btn @click="router.push({name:'child-manage'});" icon="mdi mdi-arrow-left" size="x-large" class="elevation-3 mr-5"></v-btn>
         <v-btn :icon="stopped?'mdi mdi-play':'mdi mdi-pause'" class="elevation-3 mr-5" size="x-large"
                @click="stopped?answer.start():answer.pause();stopped=!stopped"></v-btn>
         <v-btn :color="micColor" :icon="micIcon" class="elevation-3 mr-5" size="x-large"></v-btn>
@@ -109,15 +109,7 @@ const stopped = ref(false)
       <v-col color="blue" cols="7">
 
       </v-col>
-      <v-col class="d-flex  flex-row " cols="2">
-        <v-avatar class="elevation-3 mt-2" icon="mdi mdi-teddy-bear" size="80">A</v-avatar>
-        <v-col class="d-flex flex-column mr-5">
-          <v-label class="mb-2">孩子姓名</v-label>
-          <v-btn @click="router.push({name:'child-manage'});">退出练习</v-btn>
 
-        </v-col>
-
-      </v-col>
     </v-row>
     <v-row id="center-area" class="w-100" no-gutters>
       <answer-interactive ref="answer" :next-quiz="nextQuiz" :submit-answer="submitAns"

@@ -9,14 +9,14 @@ const props = defineProps<{
     <v-card class="w-66  ma-10 rounded-lg elevation-3 ">
       <template #title>
         <slot name="title">{{title}}</slot>
-
       </template>
+      <v-card-subtitle class="d-flex justify-end">
+        <slot name="actions"/>
+      </v-card-subtitle>
       <v-card-text>
         <slot name="body"/>
       </v-card-text>
-      <v-card-actions class="d-flex justify-end">
-        <slot name="actions"/>
-      </v-card-actions>
+
 
     </v-card>
   </v-container>

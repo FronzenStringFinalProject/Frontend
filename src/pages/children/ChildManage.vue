@@ -35,7 +35,7 @@ onMounted(()=>{
 </script>
 
 <template>
-  <v-card class="flex-column align-center d-flex justify-center" style="width: fit-content;align-self: center">
+  <v-card class="flex-column align-center d-flex justify-center w-50" style="width: fit-content;align-self: center">
     <v-card-title class="mb-5 d-inline-flex flex-column justify-start align-self-baseline w-100">
 
       <child-level/>
@@ -47,7 +47,7 @@ onMounted(()=>{
                     class="mr-5 justify-end" text="打卡"/>
       <svg-icon-btn :icon="ErrorRecordIcon" :on-click="()=>{showWrongQuiz=true}"
                     class="justify-end mr-5" text="错题本"/>
-      <SvgIconBtn :icon="RankIcon" :on-click="()=>{}" class="justify-center" text="排行榜"/>
+<!--      <SvgIconBtn :icon="RankIcon" :on-click="()=>{}" class="justify-center" text="排行榜"/>-->
 
       <!--      <check-in/>-->
 

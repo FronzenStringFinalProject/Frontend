@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import LionIcon from "../assets/lion.svg?component"
-
+import BlackBoard from "../assets/blackborad.svg?component"
 const props = defineProps<{
   quiz: string
 }>()
@@ -9,24 +9,38 @@ const props = defineProps<{
 
 <template>
 
-    <v-row class="" >
-
-      <v-col cols="3">
-        <LionIcon class="" style="margin-top: -140px" transform="scale(0.6,0.6)" height="700"/>
+    <v-row class="d-flex align-center" >
+      <v-col offset="1" cols="3">
+        <LionIcon transform="scale(0.7,0.7)" height="700"/>
       </v-col>
-      <v-col cols="5">
+      <v-col cols="4">
+        <div class="blackboard d-flex align-center justify-center">
 
-        <span class="d-inline-flex align-center">{{ props.quiz }} = ?</span>
+        <span  class="quiz">{{ props.quiz }} = ?</span>
+        </div>
+
+
       </v-col>
     </v-row>
-    <!--    <v-container id="backboard" style="" class="ma-0 d-flex justify-center align-center" width="500">-->
-    <!--      <p style="color: white ;font-size: xxx-large">TTT</p>-->
-    <!--    </v-container>-->
-    <!--    <black-board class="" style="margin-left: -500px;margin-top: -100px" width="600">-->
+
 
 </template>
 
 <style scoped>
-
+.blackboard{
+  position: relative;
+  z-index: 1;
+  width: 700px;
+  height: 350px;
+  background: url("../assets/blackborad.svg") no-repeat;
+}
+.quiz{
+  position: relative;
+  z-index: 2;
+  font-family: '黑体', system-ui;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: white;
+}
 
 </style>
