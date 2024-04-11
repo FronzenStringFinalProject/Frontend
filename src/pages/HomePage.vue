@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useRouter} from "vue-router";
 
 const router = useRouter()
@@ -6,10 +6,13 @@ const router = useRouter()
 </script>
 
 <template>
-  <v-container dense class="d-flex flex-column ">
+  <v-container class="d-flex flex-column " dense>
 
-  <h2>欢迎使用童蒙启算——自适应儿童盲算系统</h2>
-  <v-btn size="x-large"  style="margin-top: 150px; align-self: center" append-icon="mdi mdi-arrow-right-circle" @click="router.push('/entry')">立即开始使用</v-btn>
+    <h2>欢迎使用童蒙启算——自适应儿童盲算系统</h2>
+    <v-btn append-icon="mdi mdi-arrow-right-circle" size="x-large" style="margin-top: 150px; align-self: center" rounded="xl"
+           class="bg-deep-purple-accent-4"
+           @click="router.push('/entry')">立即开始使用
+    </v-btn>
   </v-container>
 </template>
 
