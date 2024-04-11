@@ -7,14 +7,14 @@ import {
   removeQuizGroup
 } from "@/apiRequest/child/quiz_group_selection.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
-import {ServiceResponse} from "@/apiRequest/baseRequest.ts";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 
 const quizGroupList = ref<QuizGroupItem[]>([])
 
 onMounted(() => {
   getAllQuizGroup(AuthorizeManager.getToken())
-      .then((resp: ServiceResponse<QuizGroupItem[]>) => {
-        quizGroupList.value = resp.body
+      .then((resp: ResponseResult<QuizGroupItem[]>) => {
+        quizGroupList.value = resp.expect()
       })
 })
 
@@ -24,7 +24,7 @@ const onChangeSelection = async (select: boolean, gid: number) => {
   } else {
     await removeQuizGroup(AuthorizeManager.getToken(), gid)
   }
-  quizGroupList.value = (await getAllQuizGroup(AuthorizeManager.getToken())).body
+  quizGroupList.value = (await getAllQuizGroup(AuthorizeManager.getToken())).expect()
 }
 
 </script>

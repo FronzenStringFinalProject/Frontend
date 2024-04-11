@@ -1,4 +1,4 @@
-import client from "../../baseRequest.ts";
+import client, {ResponseResult} from "../../baseRequest.ts";
 
 
 export interface QuizGroupStaticalItem {
@@ -28,7 +28,7 @@ export interface QuizGroupStaticalItem {
     wrong: number;
 }
 
-export async function getChildQuizGroupStatical(auth:string,cid:number){
+export async function getChildQuizGroupStatical(auth:string,cid:number):Promise<ResponseResult<QuizGroupStaticalItem[]>>{
     const resp = await client.get<QuizGroupStaticalItem[]>("/api/v0/parent/children/statical/quiz_group",{
         params:{cid},
         headers:{
@@ -46,7 +46,7 @@ export interface ResentCorrectStaticalItem {
     wrong: number;
 }
 
-export async function getChildCorrectTrendStatical(auth:string,cid:number){
+export async function getChildCorrectTrendStatical(auth:string,cid:number):Promise<ResponseResult<ResentCorrectStaticalItem[]>>{
     const resp = await client.get<ResentCorrectStaticalItem[]>(
         "/api/v0/parent/children/statical/correct_trend",
         {

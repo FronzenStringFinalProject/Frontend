@@ -4,17 +4,18 @@ import AnswerInteractive from "@/components/AnswerInteractive.vue";
 import QuizArea from "@/components/QuizArea.vue";
 import {useRouter} from "vue-router";
 import AuthorizeManager from "@/utils/authorize.ts";
-import {getNextQuiz} from "@/apiRequest/quiz/getNextQuiz.ts";
+import {getNextQuiz, Quiz} from "@/apiRequest/quiz/getNextQuiz.ts";
 import {submitQuizAnswer} from "@/apiRequest/quiz/submitQuizAnswer.ts";
-import {FetchedQuiz} from "@/QuizInteractive/quizTrainManager.ts";
+import {FetchedQuiz, SubmitQuiz} from "@/QuizInteractive/quizTrainManager.ts";
 import {base64Encoder} from "@/utils/base64Encoder.ts";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 
 
 const currentQuiz = ref("")
 const router = useRouter()
 const submitAudio = async (audio: Blob) => {
   try {
-    const base64Audio = base64Encoder(audio)
+    const base64Audio = await base64Encoder(audio)
 
     const form = new FormData()
     form.set("file", audio, "record.wav")
@@ -39,8 +40,8 @@ const submitAudio = async (audio: Blob) => {
 }
 
 const nextQuiz: () => Promise<FetchedQuiz> = async () => {
-  const resp = await getNextQuiz(AuthorizeManager.getToken())
-  const payload: { id: number, quiz: string } = await resp.body
+  const resp:ResponseResult<Quiz> = await getNextQuiz(AuthorizeManager.getToken())
+  const payload: { id: number, quiz: string } =resp.expect()
   const quiz_speak = payload.quiz
       .replace("-", "减")
       .replace("+", "加")
@@ -56,8 +57,8 @@ const nextQuiz: () => Promise<FetchedQuiz> = async () => {
 
 const submitAns = async (id: number, ans?: number) => {
   console.log(id, ans)
-  const resp = await submitQuizAnswer(AuthorizeManager.getToken(), id, ans)
-  return resp.body
+  const resp:ResponseResult<boolean> = await submitQuizAnswer(AuthorizeManager.getToken(), id, ans)
+  return resp.expect()
 }
 
 const mic_state = ref<{ enable: boolean, speaking: boolean }>({enable: false, speaking: false})

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {computed, ref} from "vue";
 import {parentLogin} from "@/apiRequest/parent/authorize/login.ts";
-import {ServiceResponse} from "@/apiRequest/baseRequest.ts";
+import {ResponseResult, ServiceResponse} from "@/apiRequest/baseRequest.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {useRouter} from "vue-router";
 
@@ -16,8 +16,8 @@ const rules = [
 ]
 
 const doParentLogin=()=>{
-  parentLogin(parentId.value,parentPwd.value).then((resp:ServiceResponse<string>)=>{
-        AuthorizeManager.setToken(resp.body);
+  parentLogin(parentId.value,parentPwd.value).then((resp:ResponseResult<string>)=>{
+        AuthorizeManager.setToken(resp.expect());
         if (props.returnUri){
 
         router.push({

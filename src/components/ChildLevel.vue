@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import {onMounted, ref, watch} from "vue";
-import {getChildLevelInfo} from "@/apiRequest/child/childLevel.ts";
+import {ChildLevelInfo, getChildLevelInfo} from "@/apiRequest/child/childLevel.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 
 const childLevel = ref(0)
 const childExp = ref(0)
@@ -12,9 +13,9 @@ watch(childExp, (value) => {
   console.log(progress.value)
 })
 onMounted(() => {
-  getChildLevelInfo(AuthorizeManager.getToken()).then((data) => {
+  getChildLevelInfo(AuthorizeManager.getToken()).then((data:ResponseResult<ChildLevelInfo>) => {
     console.log(data)
-    const payload = data.body
+    const payload = data.expect()
     childLevel.value = payload.level
     childExp.value = payload.level_score
   })

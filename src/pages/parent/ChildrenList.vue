@@ -5,6 +5,7 @@ import {onMounted, ref} from "vue";
 import getChildrenList, {ChildrenListItem} from "@/apiRequest/parent/childManage/childrenListItem.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {useRouter} from "vue-router";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 // utils
 const router = useRouter()
 
@@ -14,8 +15,8 @@ const childrenList = ref<ChildrenListItem[]|null>(null)
 
 // hooks
 onMounted(()=>{
-  getChildrenList(AuthorizeManager.getToken()).then((resp)=>{
-    childrenList.value= resp.body
+  getChildrenList(AuthorizeManager.getToken()).then((resp:ResponseResult<ChildrenListItem[]>)=>{
+    childrenList.value= resp.expect()
     childrenListLoadDone.value = true
   })
 })

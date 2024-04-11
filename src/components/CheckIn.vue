@@ -2,10 +2,10 @@
 import {onMounted, ref, watch} from "vue";
 import {getChildSpecMonthCheckRecord} from "@/apiRequest/child/spec_month_info.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
-import {ServiceResponse} from "@/apiRequest/baseRequest.ts";
 import {Page} from "v-calendar/dist/types/src/utils/page";
 import {child_can_check, child_check} from "@/apiRequest/child/check.ts";
-import {getChildCheckInfo} from "@/apiRequest/child/check_info.ts";
+import {ChildCheckInfo, getChildCheckInfo} from "@/apiRequest/child/check_info.ts";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 
 const date_attr = ref<{ key: string, highlight: boolean, dates: any }[]>([])
 const needUpdate = ref(true)
@@ -22,8 +22,8 @@ watch(currentMonth, (value, oldValue) => {
   }
 })
 onMounted(() => {
-  child_can_check(AuthorizeManager.getToken()).then((can: boolean) => {
-    canCheckIn.value = can
+  child_can_check(AuthorizeManager.getToken()).then((can: ResponseResult<boolean>) => {
+    canCheckIn.value = can.expect()
   })
 
   getCheckRecord()
@@ -36,11 +36,11 @@ const onPageSwitch = (page: Page[]) => {
   currentMonth.value = {month: thisPage.month, year: thisPage.year}
   if (needUpdate.value)
     getChildSpecMonthCheckRecord(AuthorizeManager.getToken(), thisPage.month, thisPage.year)
-        .then((dates: ServiceResponse<string[]>) => {
+        .then((dates: ResponseResult<string[]>) => {
               date_attr.value = [{
                 key: "checked",
                 highlight: true,
-                dates: dates.body.map((date: string) => new Date(date))
+                dates: dates.expect().map((date: string) => new Date(date))
               }]
               console.log(date_attr)
               needUpdate.value = false
@@ -58,9 +58,10 @@ const onCheckIn = () => {
 }
 
 const getCheckRecord = () => {
-  return getChildCheckInfo(AuthorizeManager.getToken()).then((data) => {
-    continualCheckIn.value = data.body.continual
-    totalCheckIn.value = data.body.total
+  return getChildCheckInfo(AuthorizeManager.getToken()).then((data:ResponseResult<ChildCheckInfo>) => {
+    const payload = data.expect()
+    continualCheckIn.value = payload.continual
+    totalCheckIn.value = payload.total
   })
 }
 

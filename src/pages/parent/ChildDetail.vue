@@ -22,7 +22,7 @@ const childBaseInfo = ref<ChildBase | null>(null)
 
 const getQuizGroupStatical = async () => {
   const resp = await getChildQuizGroupStatical(AuthorizeManager.getToken(), props.cid)
-  return resp.body.map<ChartInputItem>((data: QuizGroupStaticalItem) => {
+  return resp.expect().map<ChartInputItem>((data: QuizGroupStaticalItem) => {
     return {
       columnName: data.quiz_ty,
       correctRate: data.correct_rate,
@@ -35,7 +35,7 @@ const getQuizGroupStatical = async () => {
 
 const getCorrectRateStatical = async () => {
   const resp = await getChildCorrectTrendStatical(AuthorizeManager.getToken(), props.cid)
-  return resp.body.map<ChartInputItem>((data: ResentCorrectStaticalItem) => {
+  return resp.expect().map<ChartInputItem>((data: ResentCorrectStaticalItem) => {
     return {
       columnName: data.date,
       correctRate: data.correct_rate,
@@ -49,7 +49,7 @@ const getCorrectRateStatical = async () => {
 
 onMounted(() => {
   getChildBaseInfo(AuthorizeManager.getToken(), props.cid).then((res) => {
-    childBaseInfo.value = res.body
+    childBaseInfo.value = res.expect()
   })
 })
 
