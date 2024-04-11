@@ -3,15 +3,7 @@ import ChildInfoCard from "@/components/ChildInfoCard.vue";
 import {onMounted, ref} from "vue";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {useRouter} from "vue-router";
-import {
-  getChildCorrectTrendStatical,
-  getChildQuizGroupStatical,
-  QuizGroupStaticalItem,
-  ResentCorrectStaticalItem
-} from "@/apiRequest/parent/childManage/childStatical.ts";
 import {ChildBase, getChildBaseInfo} from "@/apiRequest/parent/childManage/childBase.ts";
-import StaticalChart from "@/components/StaticalChart.vue";
-import {ChartInputItem} from "@/utils/chartInput.ts";
 import {toChildMode} from "@/apiRequest/parent/modeSwitch.ts";
 
 const props = defineProps<{

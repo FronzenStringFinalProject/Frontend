@@ -108,7 +108,7 @@ export const route = createRouter({
     history: createWebHistory(), routes
 })
 
-route.beforeEach((to, from) => {
+route.beforeEach((to) => {
         console.log(to.path, AuthorizeManager.authorized(), AuthorizeManager.AuthorizeState())
         switch (AuthorizeManager.AuthorizeState()) {
             case "Parent":

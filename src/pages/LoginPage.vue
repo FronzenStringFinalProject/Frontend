@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {computed, ref} from "vue";
 import {parentLogin} from "@/apiRequest/parent/authorize/login.ts";
-import {ResponseResult, ServiceResponse} from "@/apiRequest/baseRequest.ts";
+import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {useRouter} from "vue-router";
 
