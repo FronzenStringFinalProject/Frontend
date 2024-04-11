@@ -41,9 +41,11 @@ const routes: RouteRecordRaw[] = [
         path: "/parent",
         component: ParentPage,
         name: "parent-page",
+        redirect:"/parent/base",
         children: [
             {
-                path: "",
+                path: "base",
+                name:"parent-base",
                 component: ParentHome
             },
             {
@@ -51,9 +53,10 @@ const routes: RouteRecordRaw[] = [
                 name: "child-detail",
                 component: ChildDetail,
                 props: (route) => ({cid: parseInt(route.params.cid.toString(), 10)}),
+                redirect:{name :"child-base"},
                 children: [
                     {
-                        path: "",
+                        path: "base",
                         name: "child-base",
                         component: BaseInfo,
                     },
@@ -110,32 +113,43 @@ export const route = createRouter({
 
 route.beforeEach((to) => {
         console.log(to.path, AuthorizeManager.authorized(), AuthorizeManager.AuthorizeState())
-        switch (AuthorizeManager.AuthorizeState()) {
-            case "Parent":
-                if (to.path.startsWith("/parent")) {
-                    return true
-                } else if (to.path.startsWith("/child")) {
-                    // 不是家长模式在家长页面，到孩子页面
+        if (to.path === "/entry") {
+            switch (AuthorizeManager.AuthorizeState()) {
+                case "Parent":
                     return {name: "parent-page"}
-                } else {
-                    return true
-                }
-            case "Child":
-                if (to.path.startsWith("/child")) {
-                    return true
-                } else if (to.path.startsWith("/parent")) {
-
+                case "NoLogin":
+                    return {name: "login"}
+                case "Child":
                     return {name: "child-manage"}
-                } else {
-                    return true
-                }
-            case "NoLogin":
-                if (to.path.startsWith("/parent") || to.path.startsWith("/child")) {
-                    return {name: "login", query: {return_uri: to.path}}
-                } else {
-                    return true
-                }
-        }
+            }
+        } else {
 
+            switch (AuthorizeManager.AuthorizeState()) {
+                case "Parent":
+                    if (to.path.startsWith("/parent")) {
+                        return true
+                    } else if (to.path.startsWith("/child")) {
+                        return {name: "parent-page"}
+                    } else {
+                        return true
+                    }
+                case "Child":
+                    if (to.path.startsWith("/child")) {
+                        return true
+                    } else if (to.path.startsWith("/parent")) {
+
+                        return {name: "child-manage"}
+                    } else {
+                        return true
+                    }
+                case "NoLogin":
+                    if (to.path.startsWith("/parent") || to.path.startsWith("/child")) {
+                        return {name: "login", query: {return_uri: to.path}}
+                    } else {
+                        return true
+                    }
+            }
+
+        }
     }
 )
