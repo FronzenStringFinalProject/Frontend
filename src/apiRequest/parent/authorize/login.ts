@@ -15,7 +15,7 @@ export async function parentLogin(parentId: string, password: string) {
 }
 
 export async function register(name: string, password: string, uniqueId: string, secret: string) {
-    await client.post<void>("/api/v0/parent/register", {
+    await client.post<void>("/api/v0/parent/signin", {
         name,
         "id": uniqueId,
         password,

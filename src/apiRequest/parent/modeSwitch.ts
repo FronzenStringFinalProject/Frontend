@@ -11,6 +11,7 @@ export async function toChildMode(auth: string, childId: number): Promise<void> 
 
         const newToken = resp.data.expect();
         AuthorizeManager.setToken(newToken)
+        AuthorizeManager.SwitchState("Child")
     }
 
 }
@@ -26,6 +27,7 @@ export async function toParentMode(auth: string, secret: string): Promise<void> 
 
         const newToken = resp.data.expect();
         AuthorizeManager.setToken(newToken)
+        AuthorizeManager.SwitchState("Parent")
     }
 
 }

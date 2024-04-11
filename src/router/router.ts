@@ -11,6 +11,7 @@ import WrongAnsQuizRecord from "../pages/parent/childDetail/WrongAnsQuizRecord.v
 import LoginPage from "../pages/LoginPage.vue";
 import AuthorizeManager from "../utils/authorize.ts";
 import ChildManage from "../pages/children/ChildManage.vue";
+import RegisterPage from "../pages/RegisterPage.vue";
 
 const routes: RouteRecordRaw[] = [
     {
@@ -31,8 +32,14 @@ const routes: RouteRecordRaw[] = [
         },
     },
     {
+        path: "/register",
+        name:"register",
+        component: RegisterPage,
+    },
+    {
         path: "/parent",
         component: ParentPage,
+        name: "parent-page",
         children: [
             {
                 path: "",
@@ -73,6 +80,7 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: "/child",
+        redirect: "/child/manage",
         children: [
             {
                 path: "manage",
@@ -95,16 +103,33 @@ export const route = createRouter({
 })
 
 route.beforeEach((to, from) => {
-    console.log(to.path, AuthorizeManager.authorized())
-    if (to.path.startsWith("/parent")) {
-        if (AuthorizeManager.authorized())
-            return true
-        else {
-            return {name: "login", query: {return_uri: to.path}}
+        console.log(to.path, AuthorizeManager.authorized(), AuthorizeManager.AuthorizeState())
+        switch (AuthorizeManager.AuthorizeState()) {
+            case "Parent":
+                if (to.path.startsWith("/parent")) {
+                    return true
+                } else if (to.path.startsWith("/child")) {
+                    // 不是家长模式在家长页面，到孩子页面
+                    return {name: "parent-page"}
+                } else {
+                    return true
+                }
+            case "Child":
+                if (to.path.startsWith("/child")) {
+                    return true
+                } else if (to.path.startsWith("/parent")) {
+
+                    return {name: "child-manage"}
+                } else {
+                    return true
+                }
+            case "NoLogin":
+                if (to.path.startsWith("/parent") || to.path.startsWith("/child")) {
+                    return {name: "login", query: {return_uri: to.path}}
+                } else {
+                    return true
+                }
         }
-    } else if (to.name == "login") {
-        return true
-    } else {
-        return true
+
     }
-})
+)
