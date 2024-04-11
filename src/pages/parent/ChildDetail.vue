@@ -20,31 +20,7 @@ const props = defineProps<{
 const router = useRouter()
 const childBaseInfo = ref<ChildBase | null>(null)
 
-const getQuizGroupStatical = async () => {
-  const resp = await getChildQuizGroupStatical(AuthorizeManager.getToken(), props.cid)
-  return resp.expect().map<ChartInputItem>((data: QuizGroupStaticalItem) => {
-    return {
-      columnName: data.quiz_ty,
-      correctRate: data.correct_rate,
-      total: data.total,
-      correctNumber: data.correct,
-      wrongNumber: data.wrong
-    }
-  })
-}
 
-const getCorrectRateStatical = async () => {
-  const resp = await getChildCorrectTrendStatical(AuthorizeManager.getToken(), props.cid)
-  return resp.expect().map<ChartInputItem>((data: ResentCorrectStaticalItem) => {
-    return {
-      columnName: data.date,
-      correctRate: data.correct_rate,
-      total: data.total,
-      correctNumber: data.correct,
-      wrongNumber: data.wrong
-    }
-  })
-}
 
 
 onMounted(() => {
@@ -65,30 +41,28 @@ const gotoChildQuizMode = () => {
 </script>
 
 <template>
-  <child-info-card title="孩子详情">
+  <child-info-card >
     <template #title class="d-flex w-100">
-      孩子详情
-      <v-btn class="ma-1 justify-end" @click="gotoChildQuizMode">
-        开始练习
-      </v-btn>
-
+      孩子详情-{{ childBaseInfo?childBaseInfo.name : "x" }}
     </template>
     <template #body>
-      <router-view v-slot="Component">
+      <router-view v-slot="{Component}">
         <component
             :is="Component"
             :cid="props.cid"/>
       </router-view>
-      <v-container v-if="childBaseInfo">
-        <p class="mb-5">{{ childBaseInfo.name }}</p>
-        <v-divider/>
-        <statical-chart :fetch-statical="getQuizGroupStatical" title="各题型正确率"/>
-        <statical-chart :fetch-statical="getCorrectRateStatical" title="近期正确率变化"/>
-
-      </v-container>
-      <v-progress-circular v-else indeterminate/>
     </template>
-
+  <template #actions>
+    <div >
+      <v-btn elevation="2" @click="router.go(-1)">返回</v-btn>
+      <v-btn elevation="2" @click="router.push({name:'child-base'})">首页</v-btn>
+      <v-btn elevation="2"  @click="router.push({name:'quizGroup'})">各题型错题统计</v-btn>
+      <v-btn elevation="2"  @click="router.push({name:'correctTrend'})">近期正确率变化统计</v-btn>
+      <v-btn elevation="2" @click="router.push({name:'wrongRecord'})">错题统计</v-btn>
+      <v-btn elevation="2"  @click="router.push({name:'checkRecord'})">打卡统计</v-btn>
+    <v-btn elevation="2"  @click="gotoChildQuizMode">开始练习</v-btn>
+    </div>
+  </template>
   </child-info-card>
 </template>
 

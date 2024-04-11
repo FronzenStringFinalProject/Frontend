@@ -14,7 +14,7 @@ const props = defineProps<{
       <v-card-text>
         <slot name="body"/>
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions class="d-flex justify-end">
         <slot name="actions"/>
       </v-card-actions>
 

@@ -12,6 +12,7 @@ import LoginPage from "../pages/LoginPage.vue";
 import AuthorizeManager from "../utils/authorize.ts";
 import ChildManage from "../pages/children/ChildManage.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
+import CheckInRecord from "../pages/parent/childDetail/CheckInRecord.vue";
 
 const routes: RouteRecordRaw[] = [
     {
@@ -33,7 +34,7 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: "/register",
-        name:"register",
+        name: "register",
         component: RegisterPage,
     },
     {
@@ -53,6 +54,7 @@ const routes: RouteRecordRaw[] = [
                 children: [
                     {
                         path: "",
+                        name: "child-base",
                         component: BaseInfo,
                     },
                     {
@@ -73,6 +75,10 @@ const routes: RouteRecordRaw[] = [
                         path: "wrong-record",
                         name: "wrongRecord",
                         component: WrongAnsQuizRecord
+                    }, {
+                        path: "check-record",
+                        name: "checkRecord",
+                        component: CheckInRecord
                     }
                 ]
             },
