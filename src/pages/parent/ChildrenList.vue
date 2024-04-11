@@ -6,6 +6,7 @@ import getChildrenList, {ChildrenListItem} from "@/apiRequest/parent/childManage
 import AuthorizeManager from "@/utils/authorize.ts";
 import {useRouter} from "vue-router";
 import {ResponseResult} from "@/apiRequest/baseRequest.ts";
+import AddChild from "@/components/AddChild.vue";
 // utils
 const router = useRouter()
 
@@ -15,11 +16,15 @@ const childrenList = ref<ChildrenListItem[]|null>(null)
 
 // hooks
 onMounted(()=>{
+  loadChildrenList()
+})
+
+const loadChildrenList = () => {
   getChildrenList(AuthorizeManager.getToken()).then((resp:ResponseResult<ChildrenListItem[]>)=>{
     childrenList.value= resp.expect()
     childrenListLoadDone.value = true
   })
-})
+}
 
 // callbacks
 const accessDetail=(id:number)=>{
@@ -53,7 +58,12 @@ const accessDetail=(id:number)=>{
     <v-progress-circular color="primary" v-else indeterminate/>
 
     </template>
+    <template #actions>
+      <add-child @done="loadChildrenList"/>
+    </template>
   </child-info-card>
+
+
 </template>
 
 <style scoped>

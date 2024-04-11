@@ -14,6 +14,10 @@ const props = defineProps<{
       <v-card-text>
         <slot name="body"/>
       </v-card-text>
+      <v-card-actions>
+        <slot name="actions"/>
+      </v-card-actions>
+
     </v-card>
   </v-container>
 </template>
