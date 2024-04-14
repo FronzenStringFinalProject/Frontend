@@ -77,7 +77,17 @@ button:focus-visible {
   }
 }
 *{
-  font-family: '黑体', system-ui;
-  font-size: large;
-  font-weight: 400;
+  font-size: large;!important;
+  font-weight: 400;!important;
+}
+
+.vch__month__label{
+  font-size: x-small;
+}
+.vch__day__label{
+  font-size: x-small;
+}
+
+.vch__legend div {
+  font-size: medium;
 }

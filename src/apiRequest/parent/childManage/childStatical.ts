@@ -28,11 +28,11 @@ export interface QuizGroupStaticalItem {
     wrong: number;
 }
 
-export async function getChildQuizGroupStatical(auth:string,cid:number):Promise<ResponseResult<QuizGroupStaticalItem[]>>{
-    const resp = await client.get<QuizGroupStaticalItem[]>("/api/v0/parent/children/statical/quiz_group",{
-        params:{cid},
-        headers:{
-            "Authorization":auth
+export async function getChildQuizGroupStatical(auth: string, cid: number): Promise<ResponseResult<QuizGroupStaticalItem[]>> {
+    const resp = await client.get<QuizGroupStaticalItem[]>("/api/v0/parent/children/statical/quiz_group", {
+        params: {cid},
+        headers: {
+            "Authorization": auth
         }
     })
     return resp.data
@@ -46,16 +46,27 @@ export interface ResentCorrectStaticalItem {
     wrong: number;
 }
 
-export async function getChildCorrectTrendStatical(auth:string,cid:number):Promise<ResponseResult<ResentCorrectStaticalItem[]>>{
+export async function getChildCorrectTrendStatical(auth: string, cid: number): Promise<ResponseResult<ResentCorrectStaticalItem[]>> {
     const resp = await client.get<ResentCorrectStaticalItem[]>(
         "/api/v0/parent/children/statical/correct_trend",
         {
-            params:{cid},
-            headers:{
-                "Authorization":auth,
+            params: {cid},
+            headers: {
+                "Authorization": auth,
             },
-            method:"GET"
+            method: "GET"
 
-    });
+        });
+    return resp.data
+}
+
+export async function parentGetChildActiveMap(auth: string, childId: number): Promise<ResponseResult<Record<string, number>>> {
+    const resp = await client.get<Record<string, number>>("/api/v0/parent/children/activate",
+        {
+            headers: {
+                Authorization: auth,
+            },
+            params: {cid: childId}
+        })
     return resp.data
 }
