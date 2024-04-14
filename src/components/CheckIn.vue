@@ -38,20 +38,27 @@ const onPageSwitch = (page: Page[]) => {
   const thisPage = page[0]
   console.log(thisPage.month)
   console.log(thisPage.year)
+  console.log(page.length)
   currentMonth.value = {month: thisPage.month, year: thisPage.year}
-  if (needUpdate.value)
+  if (needUpdate.value) {
     if (props.inParent && props.cid) {
-      parentGetChildSpecMonthCheckRecord(AuthorizeManager.getToken(), props.cid, thisPage.month, thisPage.year)
-          .then((dates: ResponseResult<string[]>) => {
-                date_attr.value = [{
-                  key: "checked",
-                  highlight: true,
-                  dates: dates.expect().map((date: string) => new Date(date))
-                }]
-                console.log(date_attr)
-                needUpdate.value = false
-              }
-          )
+
+      Promise.all(page.map(async ({month, year}) => {
+        return await parentGetChildSpecMonthCheckRecord(AuthorizeManager.getToken(), props.cid, month, year)
+      }))
+          .then((dataes: ResponseResult<string>[]) => {
+            console.log(dataes)
+            let vec: Date[] = []
+            for (const date of dataes)
+              vec.push(...date.expect().map((date: string) => new Date(date)))
+            date_attr.value = [{
+              key: "checked",
+              highlight: true,
+              dates: vec
+            }]
+            console.log(date_attr)
+            needUpdate.value = false
+          })
     } else {
 
       getChildSpecMonthCheckRecord(AuthorizeManager.getToken(), thisPage.month, thisPage.year)
@@ -66,6 +73,7 @@ const onPageSwitch = (page: Page[]) => {
               }
           )
     }
+  }
 }
 
 const onCheckIn = () => {
@@ -105,7 +113,8 @@ const getCheckRecord = async () => {
       已经累计打卡 {{ totalCheckIn }} 天
     </v-card-subtitle>
     <v-card-text>
-      <VCalendar :attributes="date_attr" class="pa-5" locale="zh-cn" title-position="left" @update:pages="onPageSwitch">
+      <VCalendar :attributes="date_attr" :columns="props.inParent?3:1" class="pa-5" locale="zh-cn" title-position="left"
+                 @update:pages="onPageSwitch">
       </VCalendar>
     </v-card-text>
     <v-card-actions v-if="!inParent" class="d-flex" style="justify-content: end">
