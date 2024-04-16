@@ -81,7 +81,7 @@ onMounted(()=>{
     <quiz-group-selection/>
   </v-dialog>
   <v-dialog v-model="showWrongQuiz" width="33%">
-    <v-card title="错题本">
+    <v-card title="错题本" class="pa-3">
       <v-card-text>
         <child-wrong-record-list/>
       </v-card-text>
