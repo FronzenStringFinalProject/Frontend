@@ -103,7 +103,7 @@ const getCheckRecord = async () => {
 
 <template>
   <v-card class="d-flex flex-column elevation-0">
-    <v-card-title><strong>
+    <v-card-title v-if="!inParent"><strong>
 
       每日打卡
     </strong>
@@ -113,7 +113,7 @@ const getCheckRecord = async () => {
       已经累计打卡 {{ totalCheckIn }} 天
     </v-card-subtitle>
     <v-card-text>
-      <VCalendar :attributes="date_attr" :columns="props.inParent?3:1" class="pa-5" locale="zh-cn" title-position="left"
+      <VCalendar :attributes="date_attr" :columns="props.inParent?4:1" class="pa-5" locale="zh-cn" title-position="left"
                  @update:pages="onPageSwitch">
       </VCalendar>
     </v-card-text>
