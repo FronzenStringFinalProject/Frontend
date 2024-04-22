@@ -35,11 +35,14 @@ watch(childExp, (value) => {
 <template>
   <div class="d-flex flex-row">
     <v-col cols="1">
-      <v-row >
-        <v-avatar color="primary" size="64">
-          <span style="font-size: 32px">{{name[0]}}</span>
-        </v-avatar>
-      <strong style="align-content: center;width: 100%">Lv:{{ childLevel }}</strong>
+      <v-row>
+        <div class="w-100">
+          <v-avatar class="" color="primary" size="64">
+            <span style="font-size: 32px">{{ name[0] }}</span>
+          </v-avatar>
+        </div>
+
+        <strong style="align-content: center;width: 100%">Lv:{{ childLevel }}</strong>
       </v-row>
 
     </v-col>
