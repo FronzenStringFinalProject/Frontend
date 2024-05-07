@@ -14,7 +14,7 @@ const props = defineProps<{
       <v-divider vertical class="ms-4"></v-divider>
     </template>
     <template #title class="ma-3" >
-      <strong class="font-weight-bold " style="font-size: xx-large;line-height: normal">{{childRank.name}}</strong>
+      <strong class="font-weight-medium" style="font-size: xx-large;line-height: normal">{{childRank.name}}</strong>
     </template>
     <template #subtitle>累计积分：{{childRank.value}} | 超过{{Math.round(childRank.rank_range * 10000)/100}}%的用户</template>
     <template #append class="h-100">

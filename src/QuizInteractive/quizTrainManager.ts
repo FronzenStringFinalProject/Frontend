@@ -332,7 +332,7 @@ export class QuizTrainManager {
                     })
                 break;
             case "SpeakingActivate":
-                this.speaking("太棒了，你又获得了100积分", false)
+                this.speaking("很好！下一题", false)
                     .then(() => {
                         this.nextState({})
                     })

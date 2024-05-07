@@ -2,13 +2,14 @@
 import {computed, nextTick, onMounted, ref, watch} from "vue";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {ResponseResult} from "@/apiRequest/baseRequest.ts";
-import {ChildBase, getChildBaseInfo} from "@/apiRequest/parent/childManage/childBase.ts";
+import {ChildBase, deleteChild, getChildBaseInfo} from "@/apiRequest/parent/childManage/childBase.ts";
 import {ChildLevelInfo, getChildLevelInfo} from "@/apiRequest/parent/childManage/sore.ts";
 import {CalendarHeatmap} from "vue3-calendar-heatmap";
 import {parentGetChildActiveMap} from "@/apiRequest/parent/childManage/childStatical.ts";
+import {useRouter} from "vue-router";
 
 const props = defineProps<{ cid: number }>()
-
+const router = useRouter();
 const childLevel = ref(0)
 const childExp = ref(0)
 const progress = ref(0)
@@ -150,7 +151,24 @@ nextTick(() => {
       </v-row>
     </v-col>
     <v-col cols="1">
-      <v-btn color="red" prepend-icon="mdi mdi-delete">移除</v-btn>
+      <v-dialog class="w-33">
+        <template #activator="{props}">
+          <v-btn color="red" prepend-icon="mdi mdi-delete" v-bind="props">移除</v-btn>
+        </template>
+        <template #default="{isActive}">
+
+          <v-card title="确认信息">
+            <v-card-text>确实要删除孩子“{{ base.name }}”吗？ 这一过程不可逆</v-card-text>
+            <v-card-actions>
+              <v-btn @click="isActive.value = false">取消</v-btn>
+              <v-btn color="red" prepend-icon="mdi mdi-delete"
+                     @click="deleteChild(AuthorizeManager.getToken(),cid).then(()=>{isActive.value=false;router.push({name:'parent-base'})})">
+                删除
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog>
     </v-col>
 
 
