@@ -6,25 +6,26 @@ import {useRouter} from "vue-router";
 import AuthorizeManager from "@/utils/authorize.ts";
 import {getNextQuiz, Quiz} from "@/apiRequest/quiz/getNextQuiz.ts";
 import {submitQuizAnswer} from "@/apiRequest/quiz/submitQuizAnswer.ts";
-import {FetchedQuiz, SubmitQuiz} from "@/QuizInteractive/quizTrainManager.ts";
+import {FetchedQuiz} from "@/QuizInteractive/quizTrainManager.ts";
 import {base64Encoder} from "@/utils/base64Encoder.ts";
 import {ResponseResult} from "@/apiRequest/baseRequest.ts";
 
 
 const currentQuiz = ref("")
 const router = useRouter()
+const audioBaseUrl = "http://127.0.0.1:5000"
 const submitAudio = async (audio: Blob) => {
   try {
     const base64Audio = await base64Encoder(audio)
 
     const form = new FormData()
     form.set("file", audio, "record.wav")
-    const res = await fetch("http://127.0.0.1:5000/recognition", {
+    const res = await fetch(audioBaseUrl + "/recognition", {
       method: "POST",
       body: JSON.stringify({
-        base64_voice:base64Audio,
+        base64_voice: base64Audio,
       }),
-      headers:{
+      headers: {
         "Content-Type": "application/json"
       }
     })
@@ -40,8 +41,8 @@ const submitAudio = async (audio: Blob) => {
 }
 
 const nextQuiz: () => Promise<FetchedQuiz> = async () => {
-  const resp:ResponseResult<Quiz> = await getNextQuiz(AuthorizeManager.getToken())
-  const payload: { id: number, quiz: string } =resp.expect()
+  const resp: ResponseResult<Quiz> = await getNextQuiz(AuthorizeManager.getToken())
+  const payload: { id: number, quiz: string } = resp.expect()
   const quiz_speak = payload.quiz
       .replace("-", "减")
       .replace("+", "加")
@@ -57,7 +58,7 @@ const nextQuiz: () => Promise<FetchedQuiz> = async () => {
 
 const submitAns = async (id: number, ans?: number) => {
   console.log(id, ans)
-  const resp:ResponseResult<boolean> = await submitQuizAnswer(AuthorizeManager.getToken(), id, ans)
+  const resp: ResponseResult<boolean> = await submitQuizAnswer(AuthorizeManager.getToken(), id, ans)
   return resp.expect()
 }
 
@@ -99,7 +100,8 @@ const stopped = ref(false)
 
     <v-row class="w-100 ma-5" no-gutters>
       <v-col class="flex-shrink-1 flex-grow-0" cols="3">
-        <v-btn @click="router.push({name:'child-manage'});" icon="mdi mdi-arrow-left" size="x-large" class="elevation-3 mr-5"></v-btn>
+        <v-btn class="elevation-3 mr-5" icon="mdi mdi-arrow-left" size="x-large"
+               @click="router.push({name:'child-manage'});"></v-btn>
         <v-btn :icon="stopped?'mdi mdi-play':'mdi mdi-pause'" class="elevation-3 mr-5" size="x-large"
                @click="stopped?answer.start():answer.pause();stopped=!stopped"></v-btn>
         <v-btn :color="micColor" :icon="micIcon" class="elevation-3 mr-5" size="x-large"></v-btn>

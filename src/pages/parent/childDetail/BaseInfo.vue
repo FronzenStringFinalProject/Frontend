@@ -176,7 +176,7 @@ nextTick(() => {
   <v-divider class="mt-8"/>
   <v-col class="pa-3">
     <span>练习热力图</span>
-    <calendar-heatmap id="heatmap" :end-date="'2024-4-14'"
+    <calendar-heatmap id="heatmap" :end-date="new Date()"
                       :range-color="['#ebedf0','#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']"
                       :tooltip-formatter="tooltips"
                       :values="activateMap"
