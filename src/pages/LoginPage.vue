@@ -20,7 +20,7 @@ const doParentLogin=()=>{
         AuthorizeManager.setToken(resp.expect());
         AuthorizeManager.SwitchState("Parent")
         if (props.returnUri){
-
+          console.log(props.returnUri)
         router.push({
          path:props.returnUri
         })
@@ -55,8 +55,8 @@ const onLogin = ref(false)
       <v-text-field v-model="parentId" ref="user_id" :rules="rules" clearable label="家长ID" prepend-icon="mdi mdi-account-circle" class="ma-5"/>
       <v-text-field type="password" v-model="parentPwd" ref="user_pwd" :rules="rules" clearable label="家长密码" prepend-icon="mdi mdi-lock" class="ma-5"/>
     </v-card-text>
-      <v-card-actions class="d-inline-flex justify-end" @click="router.push({name:'register'})">
-        <v-btn elevation="3">
+      <v-card-actions class="d-inline-flex justify-end" >
+        <v-btn elevation="3" @click="router.push({name:'register'})">
           注册
         </v-btn>
       <v-btn elevation="3" :disabled="!canLogin" @click="doParentLogin">
